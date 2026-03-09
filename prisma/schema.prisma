@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+enum LessonType {
+  VIDEO
+  READING
+  ASSIGNMENT
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  passwordHash  String
+  role          Role         @default(STUDENT)
+  image         String?
+  enrollments   Enrollment[]
+  progress      Progress[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  description String
+  thumbnail   String?
+  published   Boolean      @default(false)
+  weeks       Week[]
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Week {
+  id          String     @id @default(cuid())
+  courseId     String
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  weekNumber  Int
+  title       String
+  description String?
+  lessons     Lesson[]
+  materials   Material[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([courseId, weekNumber])
+}
+
+model Lesson {
+  id            String     @id @default(cuid())
+  weekId        String
+  week          Week       @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  title         String
+  type          LessonType
+  sortOrder     Int        @default(0)
+  videoUrl      String?
+  videoDuration Int?
+  content       String?
+  materials     Material[]
+  progress      Progress[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  title     String
+  fileUrl   String
+  fileType  String
+  fileSize  Int
+  lessonId  String?
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  weekId    String?
+  week      Week?    @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  @@unique([userId, courseId])
+}
+
+model Progress {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId      String
+  lesson        Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed     Boolean   @default(false)
+  videoProgress Int       @default(0)
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, lessonId])
+}
