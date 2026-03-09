@@ -3,20 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum Role {
-  ADMIN
-  INSTRUCTOR
-  STUDENT
-}
-
-enum LessonType {
-  VIDEO
-  READING
-  ASSIGNMENT
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -24,7 +12,7 @@ model User {
   email         String       @unique
   name          String?
   passwordHash  String
-  role          Role         @default(STUDENT)
+  role          String       @default("STUDENT")
   image         String?
   enrollments   Enrollment[]
   progress      Progress[]
@@ -65,7 +53,7 @@ model Lesson {
   weekId        String
   week          Week       @relation(fields: [weekId], references: [id], onDelete: Cascade)
   title         String
-  type          LessonType
+  type          String
   sortOrder     Int        @default(0)
   videoUrl      String?
   videoDuration Int?

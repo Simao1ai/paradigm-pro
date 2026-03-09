@@ -1,4 +1,4 @@
-import { PrismaClient, Role, LessonType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -13,7 +13,7 @@ async function main() {
       email: "admin@paradigmpro.com",
       name: "Admin User",
       passwordHash: adminHash,
-      role: Role.ADMIN,
+      role: "ADMIN",
     },
   });
 
@@ -26,7 +26,7 @@ async function main() {
       email: "instructor@paradigmpro.com",
       name: "Sarah Mitchell",
       passwordHash: instructorHash,
-      role: Role.INSTRUCTOR,
+      role: "INSTRUCTOR",
     },
   });
 
@@ -39,7 +39,7 @@ async function main() {
       email: "student@paradigmpro.com",
       name: "Alex Johnson",
       passwordHash: studentHash,
-      role: Role.STUDENT,
+      role: "STUDENT",
     },
   });
 
@@ -85,9 +85,9 @@ async function main() {
 
     // Create 3 lessons per week
     const lessons = [
-      { title: `Introduction to ${wt.title}`, type: LessonType.VIDEO, order: 1, duration: 600 + Math.floor(Math.random() * 900) },
-      { title: `Deep Dive: ${wt.title}`, type: LessonType.VIDEO, order: 2, duration: 900 + Math.floor(Math.random() * 1200) },
-      { title: `${wt.title} — Key Takeaways`, type: LessonType.READING, order: 3 },
+      { title: `Introduction to ${wt.title}`, type: "VIDEO", order: 1, duration: 600 + Math.floor(Math.random() * 900) },
+      { title: `Deep Dive: ${wt.title}`, type: "VIDEO", order: 2, duration: 900 + Math.floor(Math.random() * 1200) },
+      { title: `${wt.title} — Key Takeaways`, type: "READING", order: 3 },
     ];
 
     for (const l of lessons) {
@@ -97,9 +97,9 @@ async function main() {
           title: l.title,
           type: l.type,
           sortOrder: l.order,
-          videoDuration: l.type === LessonType.VIDEO ? l.duration : null,
+          videoDuration: l.type === "VIDEO" ? l.duration : null,
           content:
-            l.type === LessonType.READING
+            l.type === "READING"
               ? `# ${l.title}\n\nThis reading summarizes the key concepts covered in this week's video lessons.\n\n## Key Points\n\n- Point 1: Core concept explanation\n- Point 2: Practical application\n- Point 3: Common pitfalls to avoid\n\n## Recommended Reading\n\n- \"The McKinsey Way\" by Ethan Rasiel\n- \"Case in Point\" by Marc Cosentino`
               : null,
         },
