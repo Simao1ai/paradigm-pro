@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getUser } from "@/lib/get-user";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  const user = await getUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -17,7 +16,7 @@ export async function POST(req: Request) {
 
   const progress = await prisma.progress.upsert({
     where: {
-      userId_lessonId: { userId: session.user.id, lessonId },
+      userId_lessonId: { userId: user.id, lessonId },
     },
     update: {
       videoProgress: videoProgress ?? undefined,
@@ -25,7 +24,7 @@ export async function POST(req: Request) {
       completedAt: completed ? new Date() : null,
     },
     create: {
-      userId: session.user.id,
+      userId: user.id,
       lessonId,
       videoProgress: videoProgress ?? 0,
       completed: completed ?? false,

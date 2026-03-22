@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getUser } from "@/lib/get-user";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  const user = await getUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -24,11 +23,11 @@ export async function POST(req: Request) {
   // Upsert enrollment
   const enrollment = await prisma.enrollment.upsert({
     where: {
-      userId_courseId: { userId: session.user.id, courseId },
+      userId_courseId: { userId: user.id, courseId },
     },
     update: {},
     create: {
-      userId: session.user.id,
+      userId: user.id,
       courseId,
     },
   });
@@ -37,15 +36,15 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  const user = await getUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { courseId } = await req.json();
 
   await prisma.enrollment.deleteMany({
-    where: { userId: session.user.id, courseId },
+    where: { userId: user.id, courseId },
   });
 
   return NextResponse.json({ ok: true });
