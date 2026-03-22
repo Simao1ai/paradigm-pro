@@ -9,7 +9,7 @@ struct WeekView: View {
                 if let description = week.description {
                     Text(description)
                         .font(.subheadline)
-                        .foregroundColor(.gray600)
+                        .foregroundColor(.ppTextSecondary)
                         .padding(16)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .cardStyle()
@@ -19,7 +19,7 @@ struct WeekView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Lessons")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.gray900)
+                            .foregroundColor(.ppTextPrimary)
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
                             .padding(.bottom, 8)
@@ -30,18 +30,18 @@ struct WeekView: View {
                             } label: {
                                 HStack(spacing: 12) {
                                     Image(systemName: iconFor(lesson.lessonType))
-                                        .foregroundColor(.brand600)
+                                        .foregroundColor(.ppOrange)
                                         .frame(width: 24)
 
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(lesson.title)
                                             .font(.subheadline)
-                                            .foregroundColor(.gray900)
+                                            .foregroundColor(.ppTextPrimary)
 
                                         if let duration = lesson.videoDuration {
                                             Text(duration.formattedDuration)
                                                 .font(.caption)
-                                                .foregroundColor(.gray500)
+                                                .foregroundColor(.ppTextMuted)
                                         }
                                     }
 
@@ -49,14 +49,17 @@ struct WeekView: View {
 
                                     Image(systemName: "chevron.right")
                                         .font(.caption2)
-                                        .foregroundColor(.gray400)
+                                        .foregroundColor(.ppTextMuted)
                                 }
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 10)
                             }
 
                             if lesson.id != lessons.last?.id {
-                                Divider().padding(.leading, 52)
+                                Rectangle()
+                                    .fill(Color.ppBorder)
+                                    .frame(height: 1)
+                                    .padding(.leading, 52)
                             }
                         }
                     }
@@ -67,7 +70,7 @@ struct WeekView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Materials")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.gray900)
+                            .foregroundColor(.ppTextPrimary)
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
                             .padding(.bottom, 8)
@@ -75,7 +78,9 @@ struct WeekView: View {
                         ForEach(materials) { material in
                             MaterialRowView(material: material)
                             if material.id != materials.last?.id {
-                                Divider()
+                                Rectangle()
+                                    .fill(Color.ppBorder)
+                                    .frame(height: 1)
                             }
                         }
                     }
@@ -84,9 +89,10 @@ struct WeekView: View {
             }
             .padding()
         }
-        .background(Color.paradigmBackground)
+        .background(Color.ppBackground)
         .navigationTitle("Week \(week.weekNumber): \(week.title)")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
     }
 
     private func iconFor(_ type: LessonType) -> String {

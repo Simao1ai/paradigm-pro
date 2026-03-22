@@ -8,10 +8,10 @@ struct LoadingView: View {
             Spacer()
             ProgressView()
                 .scaleEffect(1.2)
-                .tint(.brand600)
+                .tint(.ppOrange)
             Text(message)
                 .font(.subheadline)
-                .foregroundColor(.gray500)
+                .foregroundColor(.ppTextSecondary)
             Spacer()
         }
         .frame(maxWidth: .infinity)

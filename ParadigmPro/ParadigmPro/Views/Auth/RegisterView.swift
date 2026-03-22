@@ -5,66 +5,75 @@ struct RegisterView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header - matches web register page
             Text("Paradigm Pro")
                 .font(.title.bold())
-                .foregroundColor(.gray900)
+                .foregroundColor(.ppTextPrimary)
 
             Text("Create your account")
                 .font(.subheadline)
-                .foregroundColor(.gray500)
+                .foregroundColor(.ppTextSecondary)
                 .padding(.top, 4)
 
-            // Card container
-            VStack(spacing: 16) {
-                // Error message
+            VStack(spacing: 18) {
                 if let error = authVM.errorMessage {
-                    Text(error)
-                        .font(.subheadline)
-                        .foregroundColor(.statusRed600)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color.statusRed50)
-                        .cornerRadius(8)
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.ppError)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.ppError)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color.ppError.opacity(0.1))
+                    .cornerRadius(10)
                 }
 
-                // Name field (optional, like web)
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Name")
                         .font(.subheadline.weight(.medium))
-                        .foregroundColor(.gray700)
+                        .foregroundColor(.ppTextSecondary)
 
-                    TextField("Your name", text: $authVM.registerName)
+                    TextField("", text: $authVM.registerName)
+                        .placeholder(when: authVM.registerName.isEmpty) {
+                            Text("Your name").foregroundColor(.ppTextMuted)
+                        }
                         .textContentType(.name)
-                        .inputFieldStyle()
+                        .foregroundColor(.ppTextPrimary)
+                        .darkInputStyle()
                 }
 
-                // Email field
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Email")
                         .font(.subheadline.weight(.medium))
-                        .foregroundColor(.gray700)
+                        .foregroundColor(.ppTextSecondary)
 
-                    TextField("you@example.com", text: $authVM.registerEmail)
+                    TextField("", text: $authVM.registerEmail)
+                        .placeholder(when: authVM.registerEmail.isEmpty) {
+                            Text("you@example.com").foregroundColor(.ppTextMuted)
+                        }
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
-                        .inputFieldStyle()
+                        .foregroundColor(.ppTextPrimary)
+                        .darkInputStyle()
                 }
 
-                // Password field (no confirm - matches web)
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Password")
                         .font(.subheadline.weight(.medium))
-                        .foregroundColor(.gray700)
+                        .foregroundColor(.ppTextSecondary)
 
-                    SecureField("••••••••", text: $authVM.registerPassword)
+                    SecureField("", text: $authVM.registerPassword)
+                        .placeholder(when: authVM.registerPassword.isEmpty) {
+                            Text("••••••••").foregroundColor(.ppTextMuted)
+                        }
                         .textContentType(.newPassword)
-                        .inputFieldStyle()
+                        .foregroundColor(.ppTextPrimary)
+                        .darkInputStyle()
                 }
 
-                // Create account button
                 Button(action: {
                     Task { await authVM.register() }
                 }) {
@@ -72,7 +81,11 @@ struct RegisterView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Create account")
+                        HStack {
+                            Text("Create account")
+                            Image(systemName: "arrow.right")
+                                .font(.caption.weight(.bold))
+                        }
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle(isLoading: authVM.isLoading))
@@ -80,7 +93,7 @@ struct RegisterView: View {
             }
             .padding(24)
             .cardStyle()
-            .padding(.top, 24)
+            .padding(.top, 28)
         }
     }
 }

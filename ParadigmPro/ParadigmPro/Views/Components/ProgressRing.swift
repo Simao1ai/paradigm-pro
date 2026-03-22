@@ -8,12 +8,12 @@ struct ProgressRing: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.brand100, lineWidth: lineWidth)
+                .stroke(Color.ppBorder, lineWidth: lineWidth)
 
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
-                    Color.brand600,
+                    Color.ppOrange,
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
@@ -21,7 +21,7 @@ struct ProgressRing: View {
 
             Text("\(Int(progress * 100))%")
                 .font(.system(size: size * 0.25, weight: .bold, design: .rounded))
-                .foregroundColor(.brand600)
+                .foregroundColor(.ppOrange)
         }
         .frame(width: size, height: size)
     }

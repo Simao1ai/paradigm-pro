@@ -16,15 +16,15 @@ struct CourseDetailView: View {
             } else if let course = viewModel.course {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        // Course header card
-                        VStack(alignment: .leading, spacing: 8) {
+                        // Course header
+                        VStack(alignment: .leading, spacing: 10) {
                             Text(course.title)
                                 .font(.title3.bold())
-                                .foregroundColor(.gray900)
+                                .foregroundColor(.ppTextPrimary)
 
                             Text(course.description)
                                 .font(.subheadline)
-                                .foregroundColor(.gray600)
+                                .foregroundColor(.ppTextSecondary)
 
                             HStack {
                                 Label("\(course.enrollmentCount) enrolled", systemImage: "person.2.fill")
@@ -32,31 +32,31 @@ struct CourseDetailView: View {
                                 Label("\(viewModel.weeks.count) weeks", systemImage: "calendar")
                             }
                             .font(.caption)
-                            .foregroundColor(.gray500)
+                            .foregroundColor(.ppTextMuted)
                         }
                         .padding(16)
                         .cardStyle()
 
-                        // Weeks - matches web: accordion cards
-                        ForEach(viewModel.weeks) { week in
-                            weekSection(week)
+                        // Weeks - numbered circles like the curriculum section
+                        ForEach(Array(viewModel.weeks.enumerated()), id: \.element.id) { index, week in
+                            weekSection(week, number: index + 1)
                         }
                     }
                     .padding()
                 }
-                .background(Color.paradigmBackground)
             }
         }
+        .background(Color.ppBackground)
         .navigationTitle("Course Details")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .task {
             await viewModel.fetchCourseDetail(courseId: courseId)
         }
     }
 
-    private func weekSection(_ week: Week) -> some View {
+    private func weekSection(_ week: Week, number: Int) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Week header
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     if expandedWeeks.contains(week.id) {
@@ -66,20 +66,27 @@ struct CourseDetailView: View {
                     }
                 }
             }) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Week \(week.weekNumber)")
-                            .font(.caption.bold())
-                            .foregroundColor(.brand600)
+                HStack(spacing: 14) {
+                    // Orange numbered circle (matching site curriculum)
+                    ZStack {
+                        Circle()
+                            .fill(Color.ppOrange)
+                            .frame(width: 32, height: 32)
 
+                        Text("\(number)")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundColor(.white)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(week.title)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.gray900)
+                            .foregroundColor(.ppTextPrimary)
 
                         if let lessons = week.lessons {
                             Text("\(lessons.count) lesson\(lessons.count == 1 ? "" : "s")")
                                 .font(.caption)
-                                .foregroundColor(.gray500)
+                                .foregroundColor(.ppTextMuted)
                         }
                     }
 
@@ -87,14 +94,17 @@ struct CourseDetailView: View {
 
                     Image(systemName: expandedWeeks.contains(week.id) ? "chevron.up" : "chevron.down")
                         .font(.caption.weight(.semibold))
-                        .foregroundColor(.gray400)
+                        .foregroundColor(.ppTextMuted)
                 }
                 .padding(16)
             }
 
             if expandedWeeks.contains(week.id) {
                 if let lessons = week.lessons {
-                    Divider().padding(.horizontal, 16)
+                    Rectangle()
+                        .fill(Color.ppBorder)
+                        .frame(height: 1)
+                        .padding(.horizontal, 16)
 
                     ForEach(lessons) { lesson in
                         NavigationLink {
@@ -103,13 +113,19 @@ struct CourseDetailView: View {
                             lessonRow(lesson)
                         }
                         if lesson.id != lessons.last?.id {
-                            Divider().padding(.leading, 56)
+                            Rectangle()
+                                .fill(Color.ppBorder)
+                                .frame(height: 1)
+                                .padding(.leading, 56)
                         }
                     }
                 }
 
                 if let materials = week.materials, !materials.isEmpty {
-                    Divider().padding(.horizontal, 16)
+                    Rectangle()
+                        .fill(Color.ppBorder)
+                        .frame(height: 1)
+                        .padding(.horizontal, 16)
                     ForEach(materials) { material in
                         MaterialRowView(material: material)
                     }
@@ -123,27 +139,22 @@ struct CourseDetailView: View {
         HStack(spacing: 12) {
             Image(systemName: lessonIcon(lesson.lessonType))
                 .frame(width: 24)
-                .foregroundColor(.brand600)
+                .foregroundColor(.ppOrange)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(lesson.title)
                     .font(.subheadline)
-                    .foregroundColor(.gray900)
+                    .foregroundColor(.ppTextPrimary)
 
                 HStack(spacing: 8) {
-                    // Lesson type badge - matches web badge colors
                     Text(lesson.type.capitalized)
                         .font(.caption2.weight(.medium))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(badgeBackground(lesson.lessonType))
-                        .foregroundColor(badgeForeground(lesson.lessonType))
-                        .cornerRadius(4)
+                        .foregroundColor(.ppTextMuted)
 
                     if let duration = lesson.videoDuration {
                         Text(duration.formattedDuration)
                             .font(.caption2)
-                            .foregroundColor(.gray500)
+                            .foregroundColor(.ppTextMuted)
                     }
                 }
             }
@@ -152,7 +163,7 @@ struct CourseDetailView: View {
 
             Image(systemName: "chevron.right")
                 .font(.caption2)
-                .foregroundColor(.gray400)
+                .foregroundColor(.ppTextMuted)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -163,22 +174,6 @@ struct CourseDetailView: View {
         case .video: return "play.circle.fill"
         case .reading: return "doc.text.fill"
         case .assignment: return "pencil.circle.fill"
-        }
-    }
-
-    private func badgeBackground(_ type: LessonType) -> Color {
-        switch type {
-        case .video: return .statusBlue100
-        case .reading: return .statusGreen100
-        case .assignment: return .statusOrange100
-        }
-    }
-
-    private func badgeForeground(_ type: LessonType) -> Color {
-        switch type {
-        case .video: return .statusBlue700
-        case .reading: return .statusGreen700
-        case .assignment: return .statusOrange700
         }
     }
 }

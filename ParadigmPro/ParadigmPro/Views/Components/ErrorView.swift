@@ -10,15 +10,15 @@ struct ErrorView: View {
 
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 40))
-                .foregroundColor(.statusOrange700)
+                .foregroundColor(.ppOrange)
 
             Text("Something went wrong")
                 .font(.headline)
-                .foregroundColor(.gray900)
+                .foregroundColor(.ppTextPrimary)
 
             Text(message)
                 .font(.subheadline)
-                .foregroundColor(.gray500)
+                .foregroundColor(.ppTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 

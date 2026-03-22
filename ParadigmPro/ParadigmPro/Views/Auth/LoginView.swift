@@ -5,55 +5,61 @@ struct LoginView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header - matches web: text-3xl font-bold + gray subtitle
+            // Header
             Text("Paradigm Pro")
                 .font(.title.bold())
-                .foregroundColor(.gray900)
+                .foregroundColor(.ppTextPrimary)
 
             Text("Sign in to your account")
                 .font(.subheadline)
-                .foregroundColor(.gray500)
+                .foregroundColor(.ppTextSecondary)
                 .padding(.top, 4)
 
-            // Card container - matches web: .card p-8
-            VStack(spacing: 16) {
-                // Error message - matches web: rounded-lg bg-red-50 p-3 text-sm text-red-600
+            // Card
+            VStack(spacing: 18) {
                 if let error = authVM.errorMessage {
-                    Text(error)
-                        .font(.subheadline)
-                        .foregroundColor(.statusRed600)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color.statusRed50)
-                        .cornerRadius(8)
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.ppError)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.ppError)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color.ppError.opacity(0.1))
+                    .cornerRadius(10)
                 }
 
-                // Email field with label
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Email")
                         .font(.subheadline.weight(.medium))
-                        .foregroundColor(.gray700)
+                        .foregroundColor(.ppTextSecondary)
 
-                    TextField("you@example.com", text: $authVM.loginEmail)
+                    TextField("", text: $authVM.loginEmail)
+                        .placeholder(when: authVM.loginEmail.isEmpty) {
+                            Text("you@example.com").foregroundColor(.ppTextMuted)
+                        }
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
-                        .inputFieldStyle()
+                        .darkInputStyle()
                 }
 
-                // Password field with label
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Password")
                         .font(.subheadline.weight(.medium))
-                        .foregroundColor(.gray700)
+                        .foregroundColor(.ppTextSecondary)
 
-                    SecureField("••••••••", text: $authVM.loginPassword)
+                    SecureField("", text: $authVM.loginPassword)
+                        .placeholder(when: authVM.loginPassword.isEmpty) {
+                            Text("••••••••").foregroundColor(.ppTextMuted)
+                        }
                         .textContentType(.password)
-                        .inputFieldStyle()
+                        .darkInputStyle()
                 }
 
-                // Sign in button - matches web: .btn-primary w-full
                 Button(action: {
                     Task { await authVM.login() }
                 }) {
@@ -61,7 +67,11 @@ struct LoginView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Sign in")
+                        HStack {
+                            Text("Sign in")
+                            Image(systemName: "arrow.right")
+                                .font(.caption.weight(.bold))
+                        }
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle(isLoading: authVM.isLoading))
@@ -69,7 +79,21 @@ struct LoginView: View {
             }
             .padding(24)
             .cardStyle()
-            .padding(.top, 24)
+            .padding(.top, 28)
+        }
+    }
+}
+
+// Placeholder modifier for dark text fields
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content
+    ) -> some View {
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
         }
     }
 }

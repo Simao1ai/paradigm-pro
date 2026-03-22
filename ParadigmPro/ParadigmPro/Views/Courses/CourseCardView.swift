@@ -7,85 +7,95 @@ struct CourseCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header gradient - matches web: gradient-to-br from-brand-500 to-brand-700 (enrolled)
-            // or from-gray-600 to-gray-800 (available)
-            ZStack {
-                if isEnrolled {
-                    LinearGradient(
-                        colors: [.brand500, .brand700],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    LinearGradient(
-                        colors: [.gray600, Color(red: 31/255, green: 41/255, blue: 55/255)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-
+            // Thumbnail area with gradient overlay
+            ZStack(alignment: .bottomLeading) {
                 if let thumbnail = course.thumbnail, let url = URL(string: thumbnail) {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     } placeholder: {
-                        Image(systemName: "book.fill")
-                            .font(.system(size: 28))
-                            .foregroundColor(.white.opacity(0.5))
+                        gradientPlaceholder
                     }
                 } else {
-                    Image(systemName: "book.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(.white.opacity(0.5))
+                    gradientPlaceholder
                 }
             }
-            .frame(height: 100)
+            .frame(height: 110)
             .clipped()
 
-            // Content - matches web: p-5
+            // Content
             VStack(alignment: .leading, spacing: 8) {
                 Text(course.title)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
-                    .foregroundColor(.gray900)
+                    .foregroundColor(.ppTextPrimary)
 
                 Text(course.description)
                     .font(.caption)
-                    .foregroundColor(.gray500)
+                    .foregroundColor(.ppTextSecondary)
                     .lineLimit(2)
 
                 Spacer(minLength: 0)
 
-                // Progress bar for enrolled courses - matches web
                 if isEnrolled {
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.gray200)
-                                .frame(height: 6)
+                    // Progress bar
+                    VStack(alignment: .leading, spacing: 4) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.ppBorder)
+                                    .frame(height: 5)
 
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.brand600)
-                                .frame(width: geo.size.width * 0.0, height: 6)
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.ppOrange)
+                                    .frame(width: max(geo.size.width * 0.0, 0), height: 5)
+                            }
                         }
+                        .frame(height: 5)
                     }
-                    .frame(height: 6)
                 } else if let onEnroll {
-                    // Enroll button - matches web: .btn-primary
                     Button(action: onEnroll) {
                         Text("Enroll Now")
-                            .font(.caption.weight(.medium))
+                            .font(.caption.weight(.semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            .background(Color.brand600)
+                            .background(
+                                LinearGradient(
+                                    colors: [.ppOrange, .ppOrangeLight],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                             .cornerRadius(8)
                     }
                 }
             }
             .padding(14)
         }
-        .cardStyle()
+        .background(Color.ppSurface)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.ppBorder, lineWidth: 1)
+        )
+    }
+
+    private var gradientPlaceholder: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 40/255, green: 30/255, blue: 70/255),
+                    Color(red: 60/255, green: 40/255, blue: 80/255)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            Image(systemName: "book.fill")
+                .font(.system(size: 24))
+                .foregroundColor(.white.opacity(0.3))
+        }
     }
 }

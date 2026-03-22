@@ -5,23 +5,23 @@ struct MaterialRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // File type badge - matches web: red-50 bg
+            // File type badge
             Text(material.fileType.uppercased())
                 .font(.system(size: 9, weight: .bold))
-                .foregroundColor(.statusRed600)
+                .foregroundColor(.ppOrange)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
-                .background(Color.statusRed50)
+                .background(Color.ppOrange.opacity(0.15))
                 .cornerRadius(4)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(material.title)
                     .font(.subheadline)
-                    .foregroundColor(.gray900)
+                    .foregroundColor(.ppTextPrimary)
 
                 Text(material.formattedFileSize)
                     .font(.caption)
-                    .foregroundColor(.gray500)
+                    .foregroundColor(.ppTextMuted)
             }
 
             Spacer()
@@ -30,7 +30,7 @@ struct MaterialRowView: View {
                 ShareLink(item: url) {
                     Image(systemName: "arrow.down.circle")
                         .font(.body)
-                        .foregroundColor(.gray400)
+                        .foregroundColor(.ppTextMuted)
                 }
             }
         }

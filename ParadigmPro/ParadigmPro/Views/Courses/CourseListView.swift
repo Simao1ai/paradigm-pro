@@ -7,7 +7,7 @@ struct CourseListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.paradigmBackground
+                Color.ppBackground
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -28,11 +28,10 @@ struct CourseListView: View {
                         }
                     } else {
                         ScrollView {
-                            // Grid - matches web: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6
                             LazyVGrid(columns: [
-                                GridItem(.flexible(), spacing: 16),
-                                GridItem(.flexible(), spacing: 16)
-                            ], spacing: 16) {
+                                GridItem(.flexible(), spacing: 14),
+                                GridItem(.flexible(), spacing: 14)
+                            ], spacing: 14) {
                                 if selectedTab == 0 {
                                     if viewModel.enrolledCourses.isEmpty {
                                         emptyState(
@@ -73,6 +72,7 @@ struct CourseListView: View {
                 }
             }
             .navigationTitle("Courses")
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationDestination(for: Course.self) { course in
                 CourseDetailView(courseId: course.id)
             }
@@ -80,20 +80,20 @@ struct CourseListView: View {
                 await viewModel.fetchCourses()
             }
         }
-        .tint(.brand600)
+        .tint(.ppOrange)
     }
 
     private func emptyState(icon: String, title: String, subtitle: String) -> some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 40))
-                .foregroundColor(.gray400)
+                .foregroundColor(.ppTextMuted)
             Text(title)
                 .font(.headline)
-                .foregroundColor(.gray900)
+                .foregroundColor(.ppTextPrimary)
             Text(subtitle)
                 .font(.subheadline)
-                .foregroundColor(.gray500)
+                .foregroundColor(.ppTextSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)
