@@ -5,7 +5,10 @@ import { stripe, PLANS, getOrCreateStripeCustomer, createCheckoutSession, create
 import { streamCoachingReply } from "./ai/chat.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { triggerEmailSequence, processEmailQueue, checkInactivity, checkChurnRisk } from "./email/service.js";
+import { trackEvent } from "./analytics.js";
 import type Stripe from "stripe";
+import { generateCertificatePdf } from "./pdf/certificate.js";
+import { nanoid } from "nanoid";
 
 export function registerRoutes(app: Express) {
   // ── Activity Tracking Middleware ───────────────────────────────────────────
@@ -145,6 +148,7 @@ export function registerRoutes(app: Express) {
 
       // If marking completed, award points + activity + badges
       if (status === "completed") {
+        trackEvent(userId, "lesson_complete", { lessonId }).catch(() => {});
         storage.getLessonProgress(userId).then(async (allProgress) => {
           const completedCount = allProgress.filter((p: any) => p.status === "completed").length;
 
@@ -157,6 +161,16 @@ export function registerRoutes(app: Express) {
             storage.awardPoints(userId, 500, "Completed the full course").catch(() => {});
             triggerEmailSequence(userId, "completion").catch(() => {});
             storage.addActivity(userId, "lesson", `completed the full Thinking Into Results program! 🎉`).catch(() => {});
+            // Auto-issue completion certificate
+            storage.getProfile(userId).then(async profile => {
+              if (!profile) return;
+              const code = nanoid(12).toUpperCase();
+              await storage.createCertificate({
+                userId, courseName: "Thinking Into Results",
+                userName: profile.fullName || "Graduate",
+                uniqueCode: code,
+              });
+            }).catch(() => {});
           } else if (completedCount >= 4) {
             triggerEmailSequence(userId, "upsell").catch(() => {});
           }
@@ -786,6 +800,7 @@ CONTENT: ${lessonContent || "No additional content provided."}`;
       const userId = req.user.claims.sub;
       const { lessonId, lessonTitle, score, totalQuestions, answers } = req.body;
       const result = await storage.saveQuizResult(userId, lessonId, lessonTitle, score, totalQuestions, answers);
+      trackEvent(userId, "quiz_submit", { lessonId, score, totalQuestions }).catch(() => {});
       // Award points for perfect score
       if (score === totalQuestions && totalQuestions > 0) {
         storage.awardPoints(userId, 25, `Perfect quiz score on ${lessonTitle}`).catch(() => {});
@@ -1022,6 +1037,7 @@ Write a warm, personalized 2-3 sentence insight. Be specific to their actual win
       const streak = await storage.getCheckInStreak(userId);
       // Award points + update streak + activity
       storage.awardPoints(userId, 5, "Daily check-in completed").catch(() => {});
+      trackEvent(userId, "check_in", { mood }).catch(() => {});
       storage.updateStreak(userId).catch(() => {});
       storage.addActivity(userId, "checkin", `completed their daily check-in`).catch(() => {});
       storage.checkAndAwardBadges(userId).catch(() => {});
@@ -1173,6 +1189,7 @@ Respond with JSON only:
       if (!lessonId || !title || !content) return res.status(400).json({ message: "lessonId, title, content required" });
       const disc = await storage.createDiscussion(userId, lessonId, title, content);
       // Award points + activity
+      trackEvent(userId, "discussion_post", { lessonId }).catch(() => {});
       storage.awardPoints(userId, 10, "Posted a discussion").catch(() => {});
       storage.addActivity(userId, "discussion", `posted a question in the forum`, { discussionId: disc.id }).catch(() => {});
       storage.checkAndAwardBadges(userId).catch(() => {});
@@ -1403,6 +1420,186 @@ Respond with JSON only:
     }
   });
 
+  // ── Analytics ─────────────────────────────────────────────────────────────
+  const adminOnly = async (req: any, res: any): Promise<boolean> => {
+    const userId = req.user?.claims?.sub;
+    if (!userId) { res.status(401).json({ message: "Unauthorized" }); return false; }
+    const profile = await storage.getProfile(userId);
+    if (profile?.role !== "admin") { res.status(403).json({ message: "Forbidden" }); return false; }
+    return true;
+  };
+
+  app.get("/api/admin/analytics/revenue", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!await adminOnly(req, res)) return;
+      const data = await storage.getRevenueAnalytics();
+      res.json(data);
+    } catch (err) {
+      console.error("Revenue analytics error:", err);
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/engagement", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!await adminOnly(req, res)) return;
+      const data = await storage.getEngagementAnalytics();
+      res.json(data);
+    } catch (err) {
+      console.error("Engagement analytics error:", err);
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/content", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!await adminOnly(req, res)) return;
+      const data = await storage.getContentAnalytics();
+      res.json(data);
+    } catch (err) {
+      console.error("Content analytics error:", err);
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/insights", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!await adminOnly(req, res)) return;
+      const insights = await storage.getAiInsights();
+      res.json(insights);
+    } catch (err) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.post("/api/admin/analytics/insights/:id/dismiss", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!await adminOnly(req, res)) return;
+      await storage.dismissAiInsight(req.params.id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.post("/api/admin/analytics/generate-insights", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!await adminOnly(req, res)) return;
+      const anthropic = getAnthropicClient();
+      const [revenue, engagement, content] = await Promise.all([
+        storage.getRevenueAnalytics(),
+        storage.getEngagementAnalytics(),
+        storage.getContentAnalytics(),
+      ]);
+
+      const prompt = `You are an analytics AI for "Paradigm Pro", a learning management system.
+Analyze this platform data and generate 4-6 actionable insights for the admin.
+
+Revenue Data:
+- MRR: $${revenue.mrr / 100}
+- Total Revenue: $${revenue.totalRevenue / 100}
+- ARPU: $${revenue.arpu / 100}
+- Active monthly trends: ${JSON.stringify(revenue.monthlyRevenue.slice(-3))}
+
+Engagement Data:
+- DAU: ${engagement.dau}, WAU: ${engagement.wau}
+- Total Events: ${engagement.totalEvents}
+- Enrollment Funnel: ${JSON.stringify(engagement.funnel)}
+
+Content Performance (top lessons by completion):
+${content.lessonMetrics.slice(0, 6).map(l => `- ${l.title}: ${l.views} views, ${l.completions} completions`).join("\n")}
+
+Generate insights as a JSON array with this structure:
+[{"type": "engagement_trend|churn_risk|content_gap|revenue_forecast", "title": "Short title", "content": "1-2 sentence actionable insight", "severity": "info|warning|critical"}]
+
+Focus on: drop-off points, engagement patterns, revenue opportunities, content problems. Be specific and data-driven.`;
+
+      const msg = await anthropic.messages.create({
+        model: "claude-sonnet-4-5",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const text = msg.content[0].type === "text" ? msg.content[0].text : "[]";
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const insights = JSON.parse(jsonMatch[0]);
+        const created = [];
+        for (const insight of insights.slice(0, 6)) {
+          const saved = await storage.createAiInsight({
+            type: insight.type || "engagement_trend",
+            title: insight.title,
+            content: insight.content,
+            severity: insight.severity || "info",
+          });
+          created.push(saved);
+        }
+        res.json({ insights: created });
+      } else {
+        res.json({ insights: [] });
+      }
+    } catch (err) {
+      console.error("Generate insights error:", err);
+      res.status(500).json({ message: "Failed to generate insights" });
+    }
+  });
+
+  app.get("/api/admin/analytics/churn", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!await adminOnly(req, res)) return;
+      const users = await storage.getChurnRiskUsers();
+      const anthropic = getAnthropicClient();
+
+      if (users.length === 0) {
+        return res.json({ users: [] });
+      }
+
+      const now = Date.now();
+      const riskUsers = users.map(u => {
+        const daysSinceActive = u.lastActive
+          ? Math.floor((now - new Date(u.lastActive).getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+        const daysSinceCheckin = u.lastCheckin
+          ? Math.floor((now - new Date(u.lastCheckin).getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+
+        let score = 0;
+        if (daysSinceActive > 14) score += 40;
+        else if (daysSinceActive > 7) score += 20;
+        if (daysSinceCheckin > 14) score += 30;
+        else if (daysSinceCheckin > 7) score += 15;
+        if (u.lessonsDone === 0) score += 30;
+        else if (u.lessonsDone < 3) score += 15;
+
+        let riskLevel = "LOW";
+        let suggestion = "Engagement looks healthy.";
+        if (score >= 70) { riskLevel = "CRITICAL"; suggestion = "Immediately send personal outreach — very high churn risk."; }
+        else if (score >= 50) { riskLevel = "HIGH"; suggestion = "Send win-back email and offer a 1:1 check-in session."; }
+        else if (score >= 30) { riskLevel = "MEDIUM"; suggestion = "Re-engage with motivational content and progress nudge."; }
+
+        return { ...u, score, riskLevel, suggestion, daysSinceActive, daysSinceCheckin };
+      });
+
+      const sorted = riskUsers.sort((a, b) => b.score - a.score);
+      res.json({ users: sorted });
+    } catch (err) {
+      console.error("Churn prediction error:", err);
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  // My Stats — student personal analytics
+  app.get("/api/my-stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await storage.getMyStats(userId);
+      res.json(stats);
+    } catch (err) {
+      console.error("My stats error:", err);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
   // ── Consultant ────────────────────────────────────────────────────────────
   app.get("/api/consultant/students", isAuthenticated, async (req: any, res) => {
     try {
@@ -1414,6 +1611,320 @@ Respond with JSON only:
     } catch (error) {
       console.error("Error fetching consultant students:", error);
       res.status(500).json({ message: "Failed to fetch students" });
+    }
+  });
+
+  // ── Certificates ──────────────────────────────────────────────────────────
+  app.get("/api/certificates", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const certs = await storage.getUserCertificates(userId);
+      res.json(certs);
+    } catch (e) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.get("/api/certificates/:code/download", isAuthenticated, async (req: any, res) => {
+    try {
+      const cert = await storage.getCertificateByCode(req.params.code);
+      if (!cert) return res.status(404).json({ message: "Not found" });
+      const host = req.get("host") || "paradigmpro.app";
+      const verifyUrl = `https://${host}/verify/${cert.uniqueCode}`;
+      const pdfBuf = await generateCertificatePdf({
+        userName: cert.userName,
+        courseName: cert.courseName,
+        issuedAt: cert.issuedAt ? new Date(cert.issuedAt) : new Date(),
+        uniqueCode: cert.uniqueCode,
+        verifyUrl,
+      });
+      storage.incrementCertificateDownload(req.params.code).catch(() => {});
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="certificate-${cert.uniqueCode}.pdf"`,
+        "Content-Length": pdfBuf.length,
+      });
+      res.send(pdfBuf);
+    } catch (e) {
+      console.error("Certificate PDF error:", e);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
+  // Public certificate verification
+  app.get("/api/verify/:code", async (req, res) => {
+    try {
+      const cert = await storage.getCertificateByCode(req.params.code);
+      if (!cert) return res.json({ valid: false });
+      res.json({
+        valid: true,
+        userName: cert.userName,
+        courseName: cert.courseName,
+        issuedAt: cert.issuedAt,
+        uniqueCode: cert.uniqueCode,
+      });
+    } catch (e) {
+      res.status(500).json({ valid: false });
+    }
+  });
+
+  // Admin: issue certificate manually
+  app.post("/api/admin/certificates/issue", isAuthenticated, async (req: any, res) => {
+    try {
+      const adminId = req.user.claims.sub;
+      const admin = await storage.getProfile(adminId);
+      if (admin?.role !== "admin") return res.status(403).json({ message: "Forbidden" });
+      const { userId } = req.body;
+      const profile = await storage.getProfile(userId);
+      if (!profile) return res.status(404).json({ message: "User not found" });
+      const code = nanoid(12).toUpperCase();
+      const cert = await storage.createCertificate({
+        userId,
+        courseName: "Thinking Into Results",
+        userName: profile.fullName || "Graduate",
+        uniqueCode: code,
+      });
+      res.json(cert);
+    } catch (e) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  // ── Content Drafts ────────────────────────────────────────────────────────
+  app.get("/api/content-drafts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const drafts = await storage.getContentDrafts(userId);
+      res.json(drafts);
+    } catch (e) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.post("/api/content-drafts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { type, title, content, status, metadata } = req.body;
+      const draft = await storage.createContentDraft({ userId, type, title, content, status, metadata });
+      res.json(draft);
+    } catch (e) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.put("/api/content-drafts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const draft = await storage.updateContentDraft(req.params.id, userId, req.body);
+      res.json(draft);
+    } catch (e) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  app.delete("/api/content-drafts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.deleteContentDraft(req.params.id, userId);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ message: "Failed" });
+    }
+  });
+
+  // ── AI Content Tools ──────────────────────────────────────────────────────
+  app.post("/api/ai/generate-curriculum", isAuthenticated, async (req: any, res) => {
+    try {
+      const { topic, audience, difficulty, weeks } = req.body;
+      const client = getAnthropicClient();
+      const numWeeks = parseInt(weeks) || 12;
+      const prompt = `You are an expert curriculum designer. Create a complete course curriculum.
+
+Topic: ${topic}
+Target Audience: ${audience || "General adult learners"}
+Difficulty: ${difficulty || "intermediate"}
+Number of Lessons: ${numWeeks}
+
+Respond with ONLY valid JSON (no markdown) in this exact structure:
+{
+  "title": "Course Title",
+  "description": "2-3 sentence course description",
+  "outcomes": ["outcome 1", "outcome 2", "outcome 3", "outcome 4"],
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "title": "Week Title",
+      "description": "Week description",
+      "lessons": [
+        {"title": "Lesson Title", "type": "video|reading|assignment", "summary": "Brief summary"}
+      ]
+    }
+  ]
+}
+
+Create exactly ${numWeeks} weeks with 2-3 lessons each. Make it professional, comprehensive, and transformational.`;
+
+      const message = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const raw = (message.content[0] as any).text;
+      const curriculum = JSON.parse(raw.replace(/```json\n?|\n?```/g, "").trim());
+      res.json({ curriculum });
+    } catch (e) {
+      console.error("Curriculum gen error:", e);
+      res.status(500).json({ message: "Failed to generate curriculum" });
+    }
+  });
+
+  app.post("/api/ai/generate-script", isAuthenticated, async (req: any, res) => {
+    try {
+      const { lessonId, customTopic } = req.body;
+      const client = getAnthropicClient();
+
+      let lessonContext = customTopic || "Personal Transformation";
+      if (lessonId) {
+        const allLessons = await storage.getLessons();
+        const lesson = allLessons.find((l: any) => String(l.id) === String(lessonId));
+        if (lesson) lessonContext = `${lesson.title}: ${(lesson as any).description || ""}`;
+      }
+
+      const prompt = `You are a world-class video script writer for transformational coaching content in the style of Bob Proctor.
+
+Write a complete, engaging video script (7-10 minutes, ~1000-1300 words) for:
+Topic: ${lessonContext}
+
+Structure your script with these clearly labeled sections:
+[HOOK] (30 seconds — grab attention immediately)
+[INTRO] (introduce yourself and the lesson)
+[MAIN CONTENT] (core teaching with 2-3 key points, each with a story or example)
+[EXERCISE] (a practical exercise for the viewer)
+[KEY TAKEAWAYS] (3 bullet points)
+[CTA] (call to action — what to do next)
+
+Write in first person, conversational, inspiring tone. Use the Thinking Into Results philosophy.`;
+
+      const message = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 3000,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const script = (message.content[0] as any).text;
+      res.json({ script });
+    } catch (e) {
+      console.error("Script gen error:", e);
+      res.status(500).json({ message: "Failed to generate script" });
+    }
+  });
+
+  app.post("/api/ai/generate-worksheet", isAuthenticated, async (req: any, res) => {
+    try {
+      const { topic, type } = req.body;
+      const client = getAnthropicClient();
+
+      const typeInstructions: Record<string, string> = {
+        worksheet: "Create a worksheet with reflection questions, fill-in-the-blank exercises, and action prompts. Include at least 8 questions.",
+        checklist: "Create an actionable checklist with 15-20 specific action items grouped by category.",
+        workbook: "Create a workbook page with deep-dive exercises, journaling prompts, and self-assessment sections.",
+        assessment: "Create a 10-question knowledge assessment with multiple choice and short answer questions, including an answer key.",
+      };
+
+      const prompt = `You are an expert educational content creator.
+      
+${typeInstructions[type] || typeInstructions.worksheet}
+
+Topic: ${topic}
+
+Format it clearly with sections, numbered items, and blank lines for responses where appropriate. Make it professional and comprehensive.`;
+
+      const message = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2500,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const content = (message.content[0] as any).text;
+      res.json({ content });
+    } catch (e) {
+      console.error("Worksheet gen error:", e);
+      res.status(500).json({ message: "Failed to generate worksheet" });
+    }
+  });
+
+  app.post("/api/ai/generate-social", isAuthenticated, async (req: any, res) => {
+    try {
+      const { topic, platforms } = req.body;
+      const client = getAnthropicClient();
+      const selectedPlatforms = platforms || ["linkedin", "twitter"];
+
+      const platformInstructions: Record<string, string> = {
+        linkedin: "LinkedIn post (professional, ~1000 chars, storytelling format, end with insight, 3-5 relevant hashtags)",
+        twitter: "Twitter/X thread (5-7 tweets, each max 280 chars, numbered 1/, 2/ etc, punchy and direct, 2-3 hashtags)",
+        instagram: "Instagram caption (inspirational, emoji-friendly, 150-200 words, 10 relevant hashtags at end)",
+        facebook: "Facebook post (conversational, community-focused, 150-250 words, ends with a question to drive engagement)",
+      };
+
+      const postsNeeded = selectedPlatforms
+        .map((p: string) => `${p.toUpperCase()}: ${platformInstructions[p] || ""}`)
+        .join("\n");
+
+      const prompt = `You are a social media expert for personal development and coaching content.
+
+Create platform-optimized posts about: ${topic}
+
+Write posts for these platforms:
+${postsNeeded}
+
+Respond with ONLY valid JSON (no markdown):
+{
+  "linkedin": "...",
+  "twitter": "...",
+  "instagram": "...",
+  "facebook": "..."
+}
+
+Only include keys for the requested platforms: ${selectedPlatforms.join(", ")}`;
+
+      const message = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2500,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const raw = (message.content[0] as any).text;
+      const posts = JSON.parse(raw.replace(/```json\n?|\n?```/g, "").trim());
+      res.json({ posts });
+    } catch (e) {
+      console.error("Social gen error:", e);
+      res.status(500).json({ message: "Failed to generate posts" });
+    }
+  });
+
+  app.post("/api/ai/build-course", isAuthenticated, async (req: any, res) => {
+    try {
+      const adminId = req.user.claims.sub;
+      const admin = await storage.getProfile(adminId);
+      if (admin?.role !== "admin") return res.status(403).json({ message: "Forbidden" });
+
+      const { curriculum } = req.body;
+      if (!curriculum) return res.status(400).json({ message: "Curriculum required" });
+
+      // Save as content draft
+      await storage.createContentDraft({
+        userId: adminId,
+        type: "curriculum",
+        title: curriculum.title,
+        content: JSON.stringify(curriculum, null, 2),
+        status: "published",
+      });
+
+      res.json({ success: true, title: curriculum.title, message: "Course saved as published draft" });
+    } catch (e) {
+      console.error("Build course error:", e);
+      res.status(500).json({ message: "Failed to build course" });
     }
   });
 }

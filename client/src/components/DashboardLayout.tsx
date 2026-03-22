@@ -23,6 +23,8 @@ import {
   Zap,
   Flame,
   BarChart3,
+  TrendingUp,
+  GraduationCap,
 } from "lucide-react";
 
 const navItems = [
@@ -32,7 +34,9 @@ const navItems = [
   { href: "/community", label: "Community", icon: Users },
   { href: "/roadmap", label: "9-Day Roadmap", icon: Map },
   { href: "/goals", label: "My Goals", icon: Target },
+  { href: "/my-stats", label: "My Stats", icon: TrendingUp },
   { href: "/reports", label: "Progress Reports", icon: BarChart3 },
+  { href: "/certificates", label: "Certificates", icon: GraduationCap },
   { href: "/achievements", label: "Achievements", icon: Award },
   { href: "/journal", label: "Journal", icon: BookMarked },
   { href: "/notifications", label: "Notifications", icon: Bell },
@@ -64,7 +68,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   });
 
   const roleNavItems = [
-    ...(profile?.role === "admin" ? [{ href: "/admin", label: "Admin", icon: ShieldCheck }] : []),
+    ...(profile?.role === "admin" ? [
+      { href: "/admin", label: "Admin", icon: ShieldCheck },
+      { href: "/admin/ai-tools", label: "AI Tools Hub", icon: Zap },
+    ] : []),
     ...(profile?.role === "consultant" ? [{ href: "/consultant", label: "My Students", icon: Users }] : []),
   ];
 

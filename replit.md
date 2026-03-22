@@ -75,7 +75,7 @@
 - `GET /api/affirmations` — Daily affirmations
 - `GET /api/admin/*` — Admin endpoints (stats, students)
 
-## Recent Changes (Mar 2026, Phase 5 complete)
+## Recent Changes (Mar 2026, Phase 7 complete)
 - Phase 1: Stripe payments infrastructure (BillingPage, /pricing, AdminPage revenue/coupons tabs, checkout/portal/webhook routes)
 - Phase 2: AI Coaching Chatbot + Action Plans + Quizzes
   - `chatConversations` + `chatMessages` tables — per-lesson conversation history
@@ -117,6 +117,44 @@
   - Cron jobs: Sunday 7am (weekly reports via Claude), daily 8am (accountability emails)
   - `server/email/weeklyReports.ts` — generates and stores weekly AI reports
   - `server/email/accountability.ts` — sends accountability nudge to users with goals who miss check-ins
+- Phase 7: Content Automation & Completion Certificates (COMPLETE)
+  - DB tables: `certificates` (user_id, course_name, user_name, unique_code, download_count), `content_drafts` (user_id, type, title, content, status, metadata)
+  - pdfkit + nanoid installed for PDF generation and unique codes
+  - `server/pdf/certificate.ts` — PDFKit A4 landscape certificate with gradient header, gold border, elegant typography
+  - Auto-issue certificate on 12/12 lesson completion (fire-and-forget, unique nanoid code)
+  - Routes: GET /api/certificates, GET /api/certificates/:code/download, GET /api/verify/:code (public), POST /api/admin/certificates/issue
+  - CRUD: GET/POST /api/content-drafts, PUT/DELETE /api/content-drafts/:id
+  - AI Tools: POST /api/ai/generate-curriculum, generate-script, generate-worksheet, generate-social, build-course
+  - `CertificatesPage.tsx` — /certificates: certificate preview cards, PDF download, LinkedIn/Twitter share
+  - `VerifyPage.tsx` — /verify/:code: public branded verification page (no auth required)
+  - `AiToolsPage.tsx` — /admin/ai-tools: hub page with tool cards + recent drafts
+  - `CurriculumGeneratorPage.tsx` — /admin/ai-tools/curriculum: full course outline generator with collapsible week tree
+  - `ScriptWriterPage.tsx` — /admin/ai-tools/scripts: video script writer with word count + editable textarea
+  - `SocialPostsPage.tsx` — /admin/ai-tools/social: multi-platform post generator (LinkedIn/Twitter/Instagram/Facebook)
+  - `WorksheetGeneratorPage.tsx` — /admin/ai-tools/worksheets: worksheet/checklist/workbook/assessment generator
+  - `CourseBuilderPage.tsx` — /admin/ai-tools/course-builder: 4-step wizard (topic → curriculum → pricing → create)
+  - DashboardLayout: added "Certificates" (GraduationCap) and "AI Tools Hub" (Zap, admin-only) nav items
+  - App.tsx: 8 new routes wired
+- Phase 6: Analytics & AI-Powered Insights (COMPLETE)
+  - DB tables: `page_views`, `engagement_events`, `ai_insights`
+  - `server/analytics.ts` — `trackEvent()` + `trackPageView()` utilities (fire-and-forget)
+  - trackEvent wired into: lesson_complete, check_in, quiz_submit, discussion_post
+  - Storage methods: getRevenueAnalytics, getEngagementAnalytics, getContentAnalytics, getAiInsights, createAiInsight, dismissAiInsight, getChurnRiskUsers, getMyStats
+  - Admin Analytics tab in AdminPage: 4 sub-tabs (Revenue, Engagement, Content, AI Insights)
+    - Revenue: MRR, ARPU, LTV, monthly revenue line chart, new vs churned bar chart
+    - Engagement: DAU/WAU, DAU 30-day area chart, enrollment funnel (horizontal bars), popular lessons table
+    - Content: per-lesson metrics table (views/completions/rate/quiz avg), color-coded problem lessons, quiz score bar chart
+    - AI Insights: Claude-generated insight cards (info/warning/critical), dismiss button, Generate Fresh Insights button
+    - Churn Prediction: expandable section, risk scoring algorithm, color-coded risk table (LOW/MEDIUM/HIGH/CRITICAL)
+  - `AdminAnalyticsTab.tsx` — standalone component, recharts-powered
+  - `MyStatsPage.tsx` — student personal analytics at /my-stats
+    - Big stat cards: lessons done, day streak, total points, level
+    - Motivational banner: top X% percentile + completion pace date
+    - Weekly activity bar chart, quiz score trend area chart, mood trend line chart, recent badges
+  - `vite.config.ts` — added `dedupe: ["react", "react-dom"]` to prevent recharts hook conflicts
+  - recharts library installed
+  - Nav: "My Stats" item (TrendingUp icon) added to DashboardLayout
+  - Routes: GET /api/admin/analytics/revenue|engagement|content|insights|churn, POST /api/admin/analytics/generate-insights, POST /api/admin/analytics/insights/:id/dismiss, GET /api/my-stats
 - Phase 5: Community Forums & Gamification (COMPLETE)
   - DB tables: `forum_discussions`, `forum_replies`, `discussion_likes`, `reply_likes`, `points_log`, `activity_feed`
   - Profile columns added: `points int default 0`, `level int default 1`

@@ -19,6 +19,15 @@ import CheckInPage from "@/pages/CheckInPage";
 import ReportsPage from "@/pages/ReportsPage";
 import CommunityPage from "@/pages/CommunityPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
+import MyStatsPage from "@/pages/MyStatsPage";
+import CertificatesPage from "@/pages/CertificatesPage";
+import VerifyPage from "@/pages/VerifyPage";
+import AiToolsPage from "@/pages/AiToolsPage";
+import CurriculumGeneratorPage from "@/pages/CurriculumGeneratorPage";
+import ScriptWriterPage from "@/pages/ScriptWriterPage";
+import SocialPostsPage from "@/pages/SocialPostsPage";
+import WorksheetGeneratorPage from "@/pages/WorksheetGeneratorPage";
+import CourseBuilderPage from "@/pages/CourseBuilderPage";
 import { Loader2 } from "lucide-react";
 
 function AuthenticatedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -99,6 +108,31 @@ export default function App() {
       <Route path="/community/leaderboard">
         <AuthenticatedRoute component={LeaderboardPage} />
       </Route>
+      <Route path="/my-stats">
+        <AuthenticatedRoute component={MyStatsPage} />
+      </Route>
+      <Route path="/certificates">
+        <AuthenticatedRoute component={CertificatesPage} />
+      </Route>
+      <Route path="/admin/ai-tools/curriculum">
+        <AuthenticatedRoute component={CurriculumGeneratorPage} />
+      </Route>
+      <Route path="/admin/ai-tools/scripts">
+        <AuthenticatedRoute component={ScriptWriterPage} />
+      </Route>
+      <Route path="/admin/ai-tools/social">
+        <AuthenticatedRoute component={SocialPostsPage} />
+      </Route>
+      <Route path="/admin/ai-tools/worksheets">
+        <AuthenticatedRoute component={WorksheetGeneratorPage} />
+      </Route>
+      <Route path="/admin/ai-tools/course-builder">
+        <AuthenticatedRoute component={CourseBuilderPage} />
+      </Route>
+      <Route path="/admin/ai-tools">
+        <AuthenticatedRoute component={AiToolsPage} />
+      </Route>
+      <Route path="/verify/:code" component={VerifyPage} />
       <Route path="/pricing" component={PricingPage} />
       <Route>
         <div className="flex items-center justify-center min-h-screen bg-brand-navy">

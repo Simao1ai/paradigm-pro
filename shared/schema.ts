@@ -534,3 +534,63 @@ export type EmailSequence = typeof emailSequences.$inferSelect;
 export type EmailStep = typeof emailSteps.$inferSelect;
 export type EmailLog = typeof emailLogs.$inferSelect;
 export type UserEmailState = typeof userEmailStates.$inferSelect;
+
+// ── Analytics ──────────────────────────────────────────────────────────────
+export const pageViews = pgTable("page_views", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => profiles.id, { onDelete: "set null" }),
+  path: text("path").notNull(),
+  referrer: text("referrer"),
+  userAgent: text("user_agent"),
+  sessionId: text("session_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const engagementEvents = pgTable("engagement_events", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(),
+  metadata: text("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const aiInsights = pgTable("ai_insights", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  severity: text("severity").notNull().default("info"),
+  data: text("data"),
+  dismissed: boolean("dismissed").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type PageView = typeof pageViews.$inferSelect;
+export type EngagementEvent = typeof engagementEvents.$inferSelect;
+export type AiInsight = typeof aiInsights.$inferSelect;
+
+// ── Certificates & Content Drafts ──────────────────────────────────────────
+export const certificates = pgTable("certificates", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  courseName: text("course_name").notNull().default("Thinking Into Results"),
+  userName: text("user_name").notNull(),
+  issuedAt: timestamp("issued_at").defaultNow(),
+  uniqueCode: text("unique_code").notNull().unique(),
+  downloadCount: integer("download_count").notNull().default(0),
+});
+
+export const contentDrafts = pgTable("content_drafts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  status: text("status").notNull().default("draft"),
+  metadata: text("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Certificate = typeof certificates.$inferSelect;
+export type ContentDraft = typeof contentDrafts.$inferSelect;
