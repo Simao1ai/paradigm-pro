@@ -1,0 +1,559 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10001 /* ParadigmProApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001; };
+		A10002 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002; };
+		A10003 /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003; };
+		A10004 /* Enrollment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004; };
+		A10005 /* Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005; };
+		A10006 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006; };
+		A10007 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007; };
+		A10008 /* CourseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008; };
+		A10009 /* EnrollmentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009; };
+		A10010 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010; };
+		A10011 /* ProgressService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10011; };
+		A10012 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10012; };
+		A10013 /* CoursesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10013; };
+		A10014 /* CourseDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10014; };
+		A10015 /* LessonViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10015; };
+		A10016 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10016; };
+		A10017 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10017; };
+		A10018 /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10018; };
+		A10019 /* AuthContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10019; };
+		A10020 /* CourseListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10020; };
+		A10021 /* CourseCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10021; };
+		A10022 /* CourseDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022; };
+		A10023 /* LessonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023; };
+		A10024 /* WeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024; };
+		A10025 /* VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10025; };
+		A10026 /* MaterialRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10026; };
+		A10027 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10027; };
+		A10028 /* ProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10028; };
+		A10029 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10029; };
+		A10030 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10030; };
+		A10031 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10031; };
+		A10032 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10032; };
+		A10033 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10033; };
+		A10034 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10034; };
+		A10035 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10035; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		C10001 /* ParadigmPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ParadigmPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10001 /* ParadigmProApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParadigmProApp.swift; sourceTree = "<group>"; };
+		B10002 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		B10003 /* Course.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
+		B10004 /* Enrollment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enrollment.swift; sourceTree = "<group>"; };
+		B10005 /* Progress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Progress.swift; sourceTree = "<group>"; };
+		B10006 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		B10007 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		B10008 /* CourseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseService.swift; sourceTree = "<group>"; };
+		B10009 /* EnrollmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentService.swift; sourceTree = "<group>"; };
+		B10010 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		B10011 /* ProgressService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressService.swift; sourceTree = "<group>"; };
+		B10012 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		B10013 /* CoursesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursesViewModel.swift; sourceTree = "<group>"; };
+		B10014 /* CourseDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseDetailViewModel.swift; sourceTree = "<group>"; };
+		B10015 /* LessonViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonViewModel.swift; sourceTree = "<group>"; };
+		B10016 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+		B10017 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		B10018 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
+		B10019 /* AuthContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthContainerView.swift; sourceTree = "<group>"; };
+		B10020 /* CourseListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseListView.swift; sourceTree = "<group>"; };
+		B10021 /* CourseCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseCardView.swift; sourceTree = "<group>"; };
+		B10022 /* CourseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseDetailView.swift; sourceTree = "<group>"; };
+		B10023 /* LessonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonView.swift; sourceTree = "<group>"; };
+		B10024 /* WeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekView.swift; sourceTree = "<group>"; };
+		B10025 /* VideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerView.swift; sourceTree = "<group>"; };
+		B10026 /* MaterialRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialRowView.swift; sourceTree = "<group>"; };
+		B10027 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		B10028 /* ProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRing.swift; sourceTree = "<group>"; };
+		B10029 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
+		B10030 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
+		B10031 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		B10032 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		B10033 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		B10034 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
+		B10035 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D10001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E10001 = {
+			isa = PBXGroup;
+			children = (
+				E10002 /* ParadigmPro */,
+				E10099 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E10099 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C10001 /* ParadigmPro.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E10002 /* ParadigmPro */ = {
+			isa = PBXGroup;
+			children = (
+				B10001 /* ParadigmProApp.swift */,
+				B10035 /* Assets.xcassets */,
+				E10003 /* Models */,
+				E10004 /* Services */,
+				E10005 /* ViewModels */,
+				E10006 /* Views */,
+				E10011 /* Navigation */,
+				E10012 /* Utilities */,
+				E10013 /* Preview Content */,
+			);
+			path = ParadigmPro;
+			sourceTree = "<group>";
+		};
+		E10003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B10002 /* User.swift */,
+				B10003 /* Course.swift */,
+				B10004 /* Enrollment.swift */,
+				B10005 /* Progress.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E10004 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B10006 /* APIClient.swift */,
+				B10007 /* AuthService.swift */,
+				B10008 /* CourseService.swift */,
+				B10009 /* EnrollmentService.swift */,
+				B10010 /* KeychainManager.swift */,
+				B10011 /* ProgressService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		E10005 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				B10012 /* AuthViewModel.swift */,
+				B10013 /* CoursesViewModel.swift */,
+				B10014 /* CourseDetailViewModel.swift */,
+				B10015 /* LessonViewModel.swift */,
+				B10016 /* ProfileViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		E10006 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				E10007 /* Auth */,
+				E10008 /* Courses */,
+				E10009 /* Lessons */,
+				E10010 /* Profile */,
+				E10014 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E10007 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				B10017 /* LoginView.swift */,
+				B10018 /* RegisterView.swift */,
+				B10019 /* AuthContainerView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		E10008 /* Courses */ = {
+			isa = PBXGroup;
+			children = (
+				B10020 /* CourseListView.swift */,
+				B10021 /* CourseCardView.swift */,
+				B10022 /* CourseDetailView.swift */,
+			);
+			path = Courses;
+			sourceTree = "<group>";
+		};
+		E10009 /* Lessons */ = {
+			isa = PBXGroup;
+			children = (
+				B10023 /* LessonView.swift */,
+				B10024 /* WeekView.swift */,
+				B10025 /* VideoPlayerView.swift */,
+				B10026 /* MaterialRowView.swift */,
+			);
+			path = Lessons;
+			sourceTree = "<group>";
+		};
+		E10010 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				B10027 /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		E10011 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				B10031 /* MainTabView.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		E10012 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				B10032 /* Constants.swift */,
+				B10033 /* Extensions.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		E10013 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				B10034 /* PreviewData.swift */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		E10014 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B10028 /* ProgressRing.swift */,
+				B10029 /* LoadingView.swift */,
+				B10030 /* ErrorView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F10001 /* ParadigmPro */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = G10003 /* Build configuration list for PBXNativeTarget "ParadigmPro" */;
+			buildPhases = (
+				F10002 /* Sources */,
+				D10001 /* Frameworks */,
+				F10003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ParadigmPro;
+			productName = ParadigmPro;
+			productReference = C10001 /* ParadigmPro.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F10099 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					F10001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = G10001 /* Build configuration list for PBXProject "ParadigmPro" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E10001;
+			productRefGroup = E10099 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F10001 /* ParadigmPro */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F10003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10035 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F10002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10001 /* ParadigmProApp.swift in Sources */,
+				A10002 /* User.swift in Sources */,
+				A10003 /* Course.swift in Sources */,
+				A10004 /* Enrollment.swift in Sources */,
+				A10005 /* Progress.swift in Sources */,
+				A10006 /* APIClient.swift in Sources */,
+				A10007 /* AuthService.swift in Sources */,
+				A10008 /* CourseService.swift in Sources */,
+				A10009 /* EnrollmentService.swift in Sources */,
+				A10010 /* KeychainManager.swift in Sources */,
+				A10011 /* ProgressService.swift in Sources */,
+				A10012 /* AuthViewModel.swift in Sources */,
+				A10013 /* CoursesViewModel.swift in Sources */,
+				A10014 /* CourseDetailViewModel.swift in Sources */,
+				A10015 /* LessonViewModel.swift in Sources */,
+				A10016 /* ProfileViewModel.swift in Sources */,
+				A10017 /* LoginView.swift in Sources */,
+				A10018 /* RegisterView.swift in Sources */,
+				A10019 /* AuthContainerView.swift in Sources */,
+				A10020 /* CourseListView.swift in Sources */,
+				A10021 /* CourseCardView.swift in Sources */,
+				A10022 /* CourseDetailView.swift in Sources */,
+				A10023 /* LessonView.swift in Sources */,
+				A10024 /* WeekView.swift in Sources */,
+				A10025 /* VideoPlayerView.swift in Sources */,
+				A10026 /* MaterialRowView.swift in Sources */,
+				A10027 /* ProfileView.swift in Sources */,
+				A10028 /* ProgressRing.swift in Sources */,
+				A10029 /* LoadingView.swift in Sources */,
+				A10030 /* ErrorView.swift in Sources */,
+				A10031 /* MainTabView.swift in Sources */,
+				A10032 /* Constants.swift in Sources */,
+				A10033 /* Extensions.swift in Sources */,
+				A10034 /* PreviewData.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		H10001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		H10002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		H10003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ParadigmPro/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paradigmpro.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		H10004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ParadigmPro/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paradigmpro.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		G10001 /* Build configuration list for PBXProject "ParadigmPro" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				H10001 /* Debug */,
+				H10002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		G10003 /* Build configuration list for PBXNativeTarget "ParadigmPro" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				H10003 /* Debug */,
+				H10004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F10099 /* Project object */;
+}
