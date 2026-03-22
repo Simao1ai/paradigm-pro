@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build a native iOS app (SwiftUI) for the Paradigm Pro 12-week course platform. The app targets **students** as the primary audience, consuming the existing Next.js REST API. Admin/instructor features remain web-only initially.
+Build a native iOS app (SwiftUI) for the Paradigm Pro 12-week course platform. The app targets **students** as the primary audience, consuming the existing Next.js REST API **hosted on Replit**. Admin/instructor features remain web-only on the Replit-hosted web app.
 
 ---
 
@@ -71,7 +71,7 @@ ParadigmPro/
 ├── Navigation/
 │   └── MainTabView.swift             # Tab bar (Courses, Profile)
 ├── Utilities/
-│   ├── Constants.swift               # API base URL, keys
+│   ├── Constants.swift               # Replit API base URL, keys
 │   └── Extensions.swift              # Date, String, Color extensions
 └── Preview Content/
     └── PreviewData.swift             # Mock data for SwiftUI previews
@@ -128,10 +128,17 @@ ParadigmPro/
 
 ### Base Configuration
 ```
-Base URL: {configurable} (e.g., https://paradigmpro.com/api)
+Base URL: Your Replit deployment URL (e.g., https://paradigm-pro.<replit-username>.repl.co/api)
 Auth: Bearer token in Authorization header (JWT from NextAuth)
 Content-Type: application/json
 ```
+
+> **Replit Hosting Notes:**
+> - The backend runs on Replit, so the base URL will be your Replit deployment URL
+> - Replit apps can go to sleep on free/Hacker plans — consider Replit's "Always On" or Reserved VM for production to avoid cold-start latency on the iOS app
+> - Replit Deployments provide a stable production URL (custom domain supported) separate from the dev URL
+> - File uploads (videos, materials) are stored on Replit's filesystem — for production, migrate to external storage (Cloudflare R2, AWS S3) since Replit storage is ephemeral on restarts for some plans
+> - SQLite works on Replit for dev, but consider Replit's managed PostgreSQL or an external DB for production data persistence
 
 ### Endpoints to Consume
 
@@ -149,6 +156,7 @@ Content-Type: application/json
 ### API Client Requirements
 - Automatic token refresh handling
 - Retry logic with exponential backoff for network failures
+- Handle Replit cold-start delays gracefully (longer initial timeout, loading indicator)
 - Proper error mapping to user-friendly messages
 - Request/response logging in debug builds
 
@@ -175,7 +183,9 @@ The current backend uses NextAuth.js with cookie-based JWT sessions, which is we
 - [ ] Implement `APIClient` with async/await networking
 - [ ] Implement `KeychainManager` for secure token storage
 - [ ] Build data models matching Prisma schema
-- [ ] **Backend**: Add mobile auth endpoints (`/api/auth/mobile/login`, `/api/auth/mobile/refresh`)
+- [ ] **Backend (Replit)**: Add mobile auth endpoints (`/api/auth/mobile/login`, `/api/auth/mobile/refresh`)
+- [ ] **Backend (Replit)**: Configure CORS headers for iOS API access
+- [ ] **Backend (Replit)**: Ensure "Always On" or Reserved VM is enabled for production
 - [ ] Build Login & Register screens
 - [ ] Implement auth state management (auto-login, logout)
 
@@ -218,7 +228,9 @@ The current backend uses NextAuth.js with cookie-based JWT sessions, which is we
 
 ---
 
-## Backend Changes Required
+## Backend Changes Required (on Replit)
+
+All backend changes are made in the Replit-hosted Next.js project. Deploy updates via Replit Deployments.
 
 ### New API Routes (for mobile auth)
 
@@ -244,6 +256,32 @@ The current backend uses NextAuth.js with cookie-based JWT sessions, which is we
 ```
 
 **Middleware update**: Accept `Authorization: Bearer <token>` header in addition to NextAuth session cookies for all protected API routes.
+
+### CORS Configuration (Required for Replit)
+Add CORS headers to `next.config.js` on Replit to allow requests from the iOS app:
+```js
+// next.config.js
+async headers() {
+  return [
+    {
+      source: "/api/:path*",
+      headers: [
+        { key: "Access-Control-Allow-Origin", value: "*" },
+        { key: "Access-Control-Allow-Methods", value: "GET,POST,PATCH,DELETE,OPTIONS" },
+        { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+      ],
+    },
+  ];
+}
+```
+
+### Replit Production Readiness
+- **Always On / Reserved VM**: Enable to prevent the Replit app from sleeping (critical for iOS app responsiveness)
+- **Replit Deployments**: Use Deployments for a stable production URL; optionally attach a custom domain
+- **Database**: Migrate from SQLite to Replit's PostgreSQL or an external managed DB for data persistence across deployments
+- **File Storage**: Move video/material uploads to Cloudflare R2 or AWS S3, since Replit filesystem may reset on redeploy
+- **Environment Variables**: Store `NEXTAUTH_SECRET`, DB credentials, and storage keys in Replit Secrets (not `.env`)
+- **HTTPS**: Replit provides HTTPS by default — no extra SSL configuration needed
 
 ### Optional Backend Enhancements
 - Add pagination to course list endpoint (`?page=1&limit=20`)
@@ -283,3 +321,5 @@ The current backend uses NextAuth.js with cookie-based JWT sessions, which is we
 - Admin features (course management from iPad)
 - Apple Sign In
 - Certificate/completion PDF generation and sharing
+- Migrate Replit backend to PostgreSQL + external file storage for full production scale
+- Custom domain for Replit Deployment (e.g., `api.paradigmpro.com`)
