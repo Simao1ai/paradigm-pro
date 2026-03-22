@@ -6,60 +6,69 @@ struct CourseListView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                Picker("", selection: $selectedTab) {
-                    Text("My Courses").tag(0)
-                    Text("Available").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .padding()
+            ZStack {
+                Color.paradigmBackground
+                    .ignoresSafeArea()
 
-                if viewModel.isLoading {
-                    LoadingView()
-                } else if let error = viewModel.errorMessage {
-                    ErrorView(message: error) {
-                        Task { await viewModel.fetchCourses() }
+                VStack(spacing: 0) {
+                    // Segmented picker
+                    Picker("", selection: $selectedTab) {
+                        Text("My Courses").tag(0)
+                        Text("Available").tag(1)
                     }
-                } else {
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 16) {
-                            if selectedTab == 0 {
-                                if viewModel.enrolledCourses.isEmpty {
-                                    emptyState(
-                                        icon: "tray",
-                                        title: "No courses yet",
-                                        subtitle: "Enroll in a course to get started"
-                                    )
-                                } else {
-                                    ForEach(viewModel.enrolledCourses) { course in
-                                        NavigationLink(value: course) {
-                                            CourseCardView(course: course, isEnrolled: true)
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+
+                    if viewModel.isLoading {
+                        LoadingView()
+                    } else if let error = viewModel.errorMessage {
+                        ErrorView(message: error) {
+                            Task { await viewModel.fetchCourses() }
+                        }
+                    } else {
+                        ScrollView {
+                            // Grid - matches web: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6
+                            LazyVGrid(columns: [
+                                GridItem(.flexible(), spacing: 16),
+                                GridItem(.flexible(), spacing: 16)
+                            ], spacing: 16) {
+                                if selectedTab == 0 {
+                                    if viewModel.enrolledCourses.isEmpty {
+                                        emptyState(
+                                            icon: "tray",
+                                            title: "No courses yet",
+                                            subtitle: "Enroll in a course to get started"
+                                        )
+                                    } else {
+                                        ForEach(viewModel.enrolledCourses) { course in
+                                            NavigationLink(value: course) {
+                                                CourseCardView(course: course, isEnrolled: true)
+                                            }
+                                            .buttonStyle(.plain)
                                         }
                                     }
-                                }
-                            } else {
-                                if viewModel.availableCourses.isEmpty {
-                                    emptyState(
-                                        icon: "checkmark.circle",
-                                        title: "All caught up",
-                                        subtitle: "You're enrolled in all available courses"
-                                    )
                                 } else {
-                                    ForEach(viewModel.availableCourses) { course in
-                                        CourseCardView(course: course, isEnrolled: false) {
-                                            Task { await viewModel.enroll(courseId: course.id) }
+                                    if viewModel.availableCourses.isEmpty {
+                                        emptyState(
+                                            icon: "checkmark.circle",
+                                            title: "All caught up",
+                                            subtitle: "You're enrolled in all available courses"
+                                        )
+                                    } else {
+                                        ForEach(viewModel.availableCourses) { course in
+                                            CourseCardView(course: course, isEnrolled: false) {
+                                                Task { await viewModel.enroll(courseId: course.id) }
+                                            }
                                         }
                                     }
                                 }
                             }
+                            .padding()
                         }
-                        .padding()
-                    }
-                    .refreshable {
-                        await viewModel.fetchCourses()
+                        .refreshable {
+                            await viewModel.fetchCourses()
+                        }
                     }
                 }
             }
@@ -71,25 +80,26 @@ struct CourseListView: View {
                 await viewModel.fetchCourses()
             }
         }
+        .tint(.brand600)
     }
 
     private func emptyState(icon: String, title: String, subtitle: String) -> some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 40))
-                .foregroundColor(.secondary)
+                .foregroundColor(.gray400)
             Text(title)
                 .font(.headline)
+                .foregroundColor(.gray900)
             Text(subtitle)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.gray500)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)
     }
 }
 
-// Make Course conform to Hashable for NavigationLink
 extension Course: Hashable {
     static func == (lhs: Course, rhs: Course) -> Bool {
         lhs.id == rhs.id

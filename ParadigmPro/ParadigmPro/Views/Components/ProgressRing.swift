@@ -7,24 +7,21 @@ struct ProgressRing: View {
 
     var body: some View {
         ZStack {
-            // Background ring
             Circle()
-                .stroke(Color.paradigmBlue.opacity(0.15), lineWidth: lineWidth)
+                .stroke(Color.brand100, lineWidth: lineWidth)
 
-            // Progress ring
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
-                    Color.paradigmBlue,
+                    Color.brand600,
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
                 .animation(.easeInOut(duration: 0.3), value: progress)
 
-            // Percentage text
             Text("\(Int(progress * 100))%")
                 .font(.system(size: size * 0.25, weight: .bold, design: .rounded))
-                .foregroundColor(.paradigmBlue)
+                .foregroundColor(.brand600)
         }
         .frame(width: size, height: size)
     }

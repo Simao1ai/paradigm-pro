@@ -10,27 +10,24 @@ struct ErrorView: View {
 
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 40))
-                .foregroundColor(.orange)
+                .foregroundColor(.statusOrange700)
 
             Text("Something went wrong")
                 .font(.headline)
+                .foregroundColor(.gray900)
 
             Text(message)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.gray500)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
             if let onRetry {
                 Button(action: onRetry) {
                     Text("Try Again")
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 10)
-                        .background(Color.paradigmBlue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                 }
+                .buttonStyle(PrimaryButtonStyle())
+                .frame(width: 160)
             }
 
             Spacer()

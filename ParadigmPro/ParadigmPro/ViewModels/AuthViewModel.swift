@@ -12,16 +12,14 @@ final class AuthViewModel: ObservableObject {
     @Published var loginEmail = ""
     @Published var loginPassword = ""
 
-    // Register fields
+    // Register fields (matches web: name, email, password - no confirm)
     @Published var registerName = ""
     @Published var registerEmail = ""
     @Published var registerPassword = ""
-    @Published var registerConfirmPassword = ""
 
     private let authService = AuthService.shared
 
     init() {
-        // Auto-login if token exists
         isAuthenticated = authService.isLoggedIn
     }
 
@@ -50,11 +48,7 @@ final class AuthViewModel: ObservableObject {
 
     func register() async {
         guard !registerEmail.isEmpty, !registerPassword.isEmpty else {
-            errorMessage = "Please fill in all required fields"
-            return
-        }
-        guard registerPassword == registerConfirmPassword else {
-            errorMessage = "Passwords do not match"
+            errorMessage = "Email and password are required"
             return
         }
         guard registerPassword.count >= 6 else {
@@ -71,7 +65,7 @@ final class AuthViewModel: ObservableObject {
                 email: registerEmail,
                 password: registerPassword
             )
-            // Auto-login after registration
+            // Auto-login after registration (same as web)
             let user = try await authService.login(email: registerEmail, password: registerPassword)
             currentUser = user
             isAuthenticated = true
@@ -100,6 +94,5 @@ final class AuthViewModel: ObservableObject {
         registerName = ""
         registerEmail = ""
         registerPassword = ""
-        registerConfirmPassword = ""
     }
 }

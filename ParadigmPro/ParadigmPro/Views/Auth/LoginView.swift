@@ -4,60 +4,72 @@ struct LoginView: View {
     @EnvironmentObject var authVM: AuthViewModel
 
     var body: some View {
-        VStack(spacing: 24) {
-            // Header
-            VStack(spacing: 8) {
-                Image(systemName: "book.closed.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.paradigmBlue)
+        VStack(spacing: 0) {
+            // Header - matches web: text-3xl font-bold + gray subtitle
+            Text("Paradigm Pro")
+                .font(.title.bold())
+                .foregroundColor(.gray900)
 
-                Text("Paradigm Pro")
-                    .font(.largeTitle.bold())
+            Text("Sign in to your account")
+                .font(.subheadline)
+                .foregroundColor(.gray500)
+                .padding(.top, 4)
 
-                Text("Sign in to continue")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.bottom, 20)
-
-            // Form
+            // Card container - matches web: .card p-8
             VStack(spacing: 16) {
-                TextField("Email", text: $authVM.loginEmail)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .textFieldStyle(.roundedBorder)
-
-                SecureField("Password", text: $authVM.loginPassword)
-                    .textContentType(.password)
-                    .textFieldStyle(.roundedBorder)
-            }
-
-            if let error = authVM.errorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundColor(.red)
-                    .multilineTextAlignment(.center)
-            }
-
-            Button(action: {
-                Task { await authVM.login() }
-            }) {
-                if authVM.isLoading {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Text("Sign In")
-                        .fontWeight(.semibold)
+                // Error message - matches web: rounded-lg bg-red-50 p-3 text-sm text-red-600
+                if let error = authVM.errorMessage {
+                    Text(error)
+                        .font(.subheadline)
+                        .foregroundColor(.statusRed600)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color.statusRed50)
+                        .cornerRadius(8)
                 }
+
+                // Email field with label
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Email")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.gray700)
+
+                    TextField("you@example.com", text: $authVM.loginEmail)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                        .inputFieldStyle()
+                }
+
+                // Password field with label
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Password")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.gray700)
+
+                    SecureField("••••••••", text: $authVM.loginPassword)
+                        .textContentType(.password)
+                        .inputFieldStyle()
+                }
+
+                // Sign in button - matches web: .btn-primary w-full
+                Button(action: {
+                    Task { await authVM.login() }
+                }) {
+                    if authVM.isLoading {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text("Sign in")
+                    }
+                }
+                .buttonStyle(PrimaryButtonStyle(isLoading: authVM.isLoading))
+                .disabled(authVM.isLoading)
             }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.paradigmBlue)
-            .foregroundColor(.white)
-            .cornerRadius(12)
-            .disabled(authVM.isLoading)
+            .padding(24)
+            .cardStyle()
+            .padding(.top, 24)
         }
-        .padding(32)
     }
 }

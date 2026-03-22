@@ -10,7 +10,7 @@ struct LessonView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Video player for video lessons
+                // Video player - matches web: aspect-video bg-black rounded
                 if viewModel.lesson.lessonType == .video, let videoUrl = viewModel.lesson.videoUrl {
                     VideoPlayerView(
                         url: videoUrl,
@@ -20,53 +20,63 @@ struct LessonView: View {
                         }
                     )
                     .frame(height: 220)
+                    .background(Color.black)
                     .cornerRadius(12)
                 }
 
-                // Lesson title & type
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+                // Lesson type badge + title
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
                         Text(viewModel.lesson.lessonType.rawValue.capitalized)
-                            .font(.caption.bold())
+                            .font(.caption.weight(.semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
-                            .background(Color.paradigmBlue.opacity(0.1))
-                            .foregroundColor(.paradigmBlue)
+                            .background(badgeBackground(viewModel.lesson.lessonType))
+                            .foregroundColor(badgeForeground(viewModel.lesson.lessonType))
                             .cornerRadius(4)
 
                         if let duration = viewModel.lesson.videoDuration {
                             Text(duration.formattedDuration)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.gray500)
                         }
                     }
 
                     Text(viewModel.lesson.title)
-                        .font(.title2.bold())
+                        .font(.title3.bold())
+                        .foregroundColor(.gray900)
                 }
 
-                // Content for reading/assignment lessons
+                // Content
                 if let content = viewModel.lesson.content, !content.isEmpty {
                     Text(content)
-                        .font(.body)
-                        .padding()
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
+                        .font(.subheadline)
+                        .foregroundColor(.gray700)
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .cardStyle()
                 }
 
-                // Materials
+                // Materials section
                 if let materials = viewModel.lesson.materials, !materials.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Materials")
-                            .font(.headline)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.gray900)
 
-                        ForEach(materials) { material in
-                            MaterialRowView(material: material)
+                        VStack(spacing: 0) {
+                            ForEach(materials) { material in
+                                MaterialRowView(material: material)
+                                if material.id != materials.last?.id {
+                                    Divider()
+                                }
+                            }
                         }
+                        .cardStyle()
                     }
                 }
 
-                // Mark complete button
+                // Mark complete button - matches web MarkCompleteButton
                 Button(action: {
                     Task { await viewModel.toggleCompletion() }
                 }) {
@@ -75,20 +85,29 @@ struct LessonView: View {
                               ? "checkmark.circle.fill"
                               : "circle")
                         Text(viewModel.isCompleted ? "Completed" : "Mark Complete")
+                            .fontWeight(.medium)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 12)
                     .background(viewModel.isCompleted
-                                ? Color.paradigmGreen.opacity(0.1)
-                                : Color.paradigmBlue.opacity(0.1))
-                    .foregroundColor(viewModel.isCompleted ? .paradigmGreen : .paradigmBlue)
-                    .cornerRadius(12)
+                                ? Color.statusGreen100
+                                : Color.brand50)
+                    .foregroundColor(viewModel.isCompleted ? .statusGreen700 : .brand600)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(viewModel.isCompleted ? Color.statusGreen700.opacity(0.3) : Color.brand600.opacity(0.3), lineWidth: 1)
+                    )
                 }
 
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(.statusRed600)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.statusRed50)
+                        .cornerRadius(8)
                 }
             }
             .padding()
@@ -96,5 +115,21 @@ struct LessonView: View {
         .background(Color.paradigmBackground)
         .navigationTitle("Lesson")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func badgeBackground(_ type: LessonType) -> Color {
+        switch type {
+        case .video: return .statusBlue100
+        case .reading: return .statusGreen100
+        case .assignment: return .statusOrange100
+        }
+    }
+
+    private func badgeForeground(_ type: LessonType) -> Color {
+        switch type {
+        case .video: return .statusBlue700
+        case .reading: return .statusGreen700
+        case .assignment: return .statusOrange700
+        }
     }
 }

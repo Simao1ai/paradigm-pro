@@ -5,44 +5,36 @@ struct MaterialRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: iconForFileType(material.fileType))
-                .font(.title3)
-                .foregroundColor(.paradigmBlue)
-                .frame(width: 32)
+            // File type badge - matches web: red-50 bg
+            Text(material.fileType.uppercased())
+                .font(.system(size: 9, weight: .bold))
+                .foregroundColor(.statusRed600)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(Color.statusRed50)
+                .cornerRadius(4)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(material.title)
                     .font(.subheadline)
+                    .foregroundColor(.gray900)
 
-                Text("\(material.fileType.uppercased()) - \(material.formattedFileSize)")
+                Text(material.formattedFileSize)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.gray500)
             }
 
             Spacer()
 
             if let url = URL(string: material.fileUrl) {
                 ShareLink(item: url) {
-                    Image(systemName: "square.and.arrow.down")
-                        .foregroundColor(.paradigmBlue)
+                    Image(systemName: "arrow.down.circle")
+                        .font(.body)
+                        .foregroundColor(.gray400)
                 }
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-    }
-
-    private func iconForFileType(_ type: String) -> String {
-        switch type.lowercased() {
-        case "pdf": return "doc.fill"
-        case "doc", "docx": return "doc.text.fill"
-        case "xls", "xlsx": return "tablecells.fill"
-        case "ppt", "pptx": return "rectangle.split.3x1.fill"
-        case "zip", "rar": return "doc.zipper"
-        case "mp4", "mov", "avi": return "film.fill"
-        case "mp3", "wav": return "speaker.wave.2.fill"
-        case "png", "jpg", "jpeg", "gif": return "photo.fill"
-        default: return "doc.fill"
-        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
     }
 }

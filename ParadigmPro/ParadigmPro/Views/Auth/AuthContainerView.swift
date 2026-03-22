@@ -2,26 +2,55 @@ import SwiftUI
 
 struct AuthContainerView: View {
     @State private var showRegister = false
+    @EnvironmentObject var authVM: AuthViewModel
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                if showRegister {
-                    RegisterView()
-                } else {
-                    LoginView()
-                }
+        // Matches web: min-h-screen items-center justify-center bg-gray-50 px-4
+        ZStack {
+            Color.paradigmBackground
+                .ignoresSafeArea()
 
-                Button(action: { showRegister.toggle() }) {
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 40)
+
                     if showRegister {
-                        Text("Already have an account? **Sign In**")
+                        RegisterView()
                     } else {
-                        Text("Don't have an account? **Create one**")
+                        LoginView()
                     }
+
+                    // Toggle link - matches web: mt-4 text-center text-sm text-gray-500
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showRegister.toggle()
+                            authVM.errorMessage = nil
+                        }
+                    }) {
+                        if showRegister {
+                            HStack(spacing: 4) {
+                                Text("Already have an account?")
+                                    .foregroundColor(.gray500)
+                                Text("Sign in")
+                                    .foregroundColor(.brand600)
+                                    .fontWeight(.medium)
+                            }
+                        } else {
+                            HStack(spacing: 4) {
+                                Text("Don't have an account?")
+                                    .foregroundColor(.gray500)
+                                Text("Register")
+                                    .foregroundColor(.brand600)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                    }
+                    .font(.subheadline)
+                    .padding(.top, 16)
+
+                    Spacer(minLength: 40)
                 }
-                .font(.subheadline)
-                .foregroundColor(.paradigmBlue)
-                .padding(.top, 8)
+                .padding(.horizontal, 24)
             }
         }
     }
