@@ -21,7 +21,7 @@ final class AuthService {
 
     func register(name: String, email: String, password: String) async throws -> RegisterResponse {
         let response: RegisterResponse = try await api.post(
-            "/auth/register",
+            "/auth/mobile/register",
             body: ["name": name, "email": email, "password": password],
             authenticated: false
         )

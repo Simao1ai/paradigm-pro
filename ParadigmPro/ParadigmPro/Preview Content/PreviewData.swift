@@ -5,86 +5,77 @@ enum PreviewData {
         id: "preview-user-1",
         email: "student@example.com",
         name: "Jane Student",
-        role: .student,
-        image: nil,
-        createdAt: "2024-01-01T00:00:00.000Z",
-        updatedAt: "2024-01-01T00:00:00.000Z"
+        role: "student",
+        image: nil
     )
 
-    static let material = Material(
-        id: "preview-material-1",
-        title: "Course Syllabus",
-        fileUrl: "https://example.com/syllabus.pdf",
-        fileType: "pdf",
-        fileSize: 1_048_576,
+    static let asset = LessonAsset(
+        id: "preview-asset-1",
         lessonId: "preview-lesson-1",
-        weekId: nil,
-        createdAt: "2024-01-01T00:00:00.000Z"
+        assetType: "pdf",
+        label: "Lesson 1 PDF",
+        storagePath: "/assets/lesson-1.pdf",
+        fileSizeBytes: 1_048_576,
+        mimeType: "application/pdf",
+        sortOrder: 0
     )
 
     static let lesson = Lesson(
         id: "preview-lesson-1",
-        weekId: "preview-week-1",
-        title: "Introduction to the Course",
-        type: "video",
-        sortOrder: 0,
-        videoUrl: "https://example.com/video.mp4",
-        videoDuration: 600,
-        content: nil,
-        materials: [material],
-        createdAt: "2024-01-01T00:00:00.000Z",
-        updatedAt: "2024-01-01T00:00:00.000Z"
-    )
-
-    static let readingLesson = Lesson(
-        id: "preview-lesson-2",
-        weekId: "preview-week-1",
-        title: "Core Concepts",
-        type: "reading",
+        lessonNumber: 1,
+        title: "A Worthy Ideal",
+        slug: "a-worthy-ideal",
+        subtitle: "Define what you truly want",
+        description: "The first step in transformation is clarity.",
+        keyPrinciple: "You must have a worthy ideal to pursue.",
+        estimatedMinutes: 45,
+        hasAudio: false,
+        isPublished: true,
         sortOrder: 1,
-        videoUrl: nil,
-        videoDuration: nil,
-        content: "This lesson covers the core concepts you need to understand before proceeding.",
-        materials: [],
         createdAt: "2024-01-01T00:00:00.000Z",
-        updatedAt: "2024-01-01T00:00:00.000Z"
+        assets: [asset]
     )
 
-    static let week = Week(
-        id: "preview-week-1",
-        courseId: "preview-course-1",
-        weekNumber: 1,
-        title: "Getting Started",
-        description: "Introduction to the fundamentals",
-        lessons: [lesson, readingLesson],
-        materials: [material],
-        createdAt: "2024-01-01T00:00:00.000Z",
-        updatedAt: "2024-01-01T00:00:00.000Z"
-    )
-
-    static let course = Course(
-        id: "preview-course-1",
-        title: "12-Week Paradigm Shift Program",
-        slug: "paradigm-shift-program",
-        description: "A comprehensive 12-week program designed to transform your approach.",
-        thumbnail: nil,
-        published: true,
-        weeks: [week],
-        createdAt: "2024-01-01T00:00:00.000Z",
-        updatedAt: "2024-01-01T00:00:00.000Z",
-        _count: Course.EnrollmentCount(enrollments: 42)
-    )
-
-    static let courses = [course]
+    static let lessons = (1...12).map { i in
+        Lesson(
+            id: "preview-lesson-\(i)",
+            lessonNumber: i,
+            title: "Lesson \(i)",
+            slug: "lesson-\(i)",
+            subtitle: "Subtitle for lesson \(i)",
+            description: nil,
+            keyPrinciple: nil,
+            estimatedMinutes: 45,
+            hasAudio: i > 3,
+            isPublished: true,
+            sortOrder: i,
+            createdAt: nil,
+            assets: nil
+        )
+    }
 
     static let progress = LessonProgress(
         id: "preview-progress-1",
         userId: "preview-user-1",
         lessonId: "preview-lesson-1",
-        completed: false,
-        videoProgress: 120,
+        status: "in_progress",
+        audioPositionSecs: 120,
         completedAt: nil,
-        createdAt: "2024-01-01T00:00:00.000Z",
-        updatedAt: "2024-01-01T00:00:00.000Z"
+        lastAccessedAt: nil,
+        lessonNumber: 1,
+        lessonTitle: "A Worthy Ideal",
+        lessonSlug: "a-worthy-ideal"
+    )
+
+    static let profile = Profile(
+        id: "preview-user-1",
+        fullName: "Jane Student",
+        avatarUrl: nil,
+        role: "student",
+        points: 150,
+        level: 2,
+        onboardingDone: true,
+        lastActiveAt: nil,
+        createdAt: "2024-01-01T00:00:00.000Z"
     )
 }

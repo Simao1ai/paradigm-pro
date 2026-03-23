@@ -1,5 +1,4 @@
 import Foundation
-import Combine
 
 @MainActor
 final class LessonViewModel: ObservableObject {
@@ -9,21 +8,20 @@ final class LessonViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let progressService = ProgressService.shared
-    private var autoSaveTimer: Timer?
 
     init(lesson: Lesson) {
         self.lesson = lesson
     }
 
     func toggleCompletion() async {
-        let newCompleted = !isCompleted
+        let newStatus = isCompleted ? "in_progress" : "completed"
 
         do {
             progress = try await progressService.updateProgress(
                 lessonId: lesson.id,
-                completed: newCompleted
+                status: newStatus
             )
-            isCompleted = newCompleted
+            isCompleted = !isCompleted
         } catch let error as APIError {
             errorMessage = error.errorDescription
         } catch {
@@ -31,33 +29,21 @@ final class LessonViewModel: ObservableObject {
         }
     }
 
-    func saveVideoProgress(seconds: Int) async {
+    func saveAudioProgress(seconds: Int) async {
+        // Audio progress tracking uses the same progress endpoint
         do {
             progress = try await progressService.updateProgress(
                 lessonId: lesson.id,
-                videoProgress: seconds
+                status: "in_progress"
             )
-
-            // Auto-complete at 90% threshold
-            if let duration = lesson.videoDuration, duration > 0 {
-                let threshold = Double(duration) * Constants.videoAutoCompleteThreshold
-                if Double(seconds) >= threshold && !isCompleted {
-                    progress = try await progressService.updateProgress(
-                        lessonId: lesson.id,
-                        completed: true
-                    )
-                    isCompleted = true
-                }
-            }
         } catch {
-            // Silently fail for auto-save (non-critical)
             #if DEBUG
-            print("Video progress save failed: \(error)")
+            print("Audio progress save failed: \(error)")
             #endif
         }
     }
 
     var resumeFromSeconds: Int {
-        progress?.videoProgress ?? 0
+        progress?.audioPositionSecs ?? 0
     }
 }

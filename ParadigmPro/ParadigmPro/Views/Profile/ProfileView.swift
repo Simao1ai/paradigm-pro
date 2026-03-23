@@ -2,18 +2,17 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var authVM: AuthViewModel
+    @StateObject private var viewModel = ProfileViewModel()
 
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ppBackground
-                    .ignoresSafeArea()
+                Color.ppBackground.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 16) {
                         // User info card
                         HStack(spacing: 16) {
-                            // Avatar circle with initials
                             ZStack {
                                 Circle()
                                     .fill(
@@ -31,7 +30,7 @@ struct ProfileView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(authVM.currentUser?.name ?? "Student")
+                                Text(viewModel.profile?.fullName ?? authVM.currentUser?.name ?? "Student")
                                     .font(.headline)
                                     .foregroundColor(.ppTextPrimary)
 
@@ -39,8 +38,8 @@ struct ProfileView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.ppTextSecondary)
 
-                                if let role = authVM.currentUser?.role {
-                                    Text(role.rawValue.capitalized)
+                                if let role = viewModel.profile?.role {
+                                    Text(role.capitalized)
                                         .font(.caption.weight(.medium))
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 2)
@@ -55,7 +54,18 @@ struct ProfileView: View {
                         .padding(16)
                         .cardStyle()
 
-                        // App info
+                        // Stats
+                        if let profile = viewModel.profile {
+                            HStack(spacing: 0) {
+                                statItem(value: "\(profile.points ?? 0)", label: "Points")
+                                Divider().frame(height: 30).background(Color.ppBorder)
+                                statItem(value: "\(profile.level ?? 1)", label: "Level")
+                            }
+                            .padding(.vertical, 12)
+                            .cardStyle()
+                        }
+
+                        // Version
                         VStack(spacing: 0) {
                             HStack {
                                 Text("Version")
@@ -71,9 +81,7 @@ struct ProfileView: View {
                         .cardStyle()
 
                         // Sign out
-                        Button(action: {
-                            authVM.logout()
-                        }) {
+                        Button(action: { authVM.logout() }) {
                             HStack {
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
                                 Text("Sign Out")
@@ -86,12 +94,28 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .task {
+                await viewModel.fetchProfile()
+            }
         }
         .tint(.ppOrange)
     }
 
+    private func statItem(value: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title3.weight(.bold))
+                .foregroundColor(.ppOrange)
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.ppTextMuted)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private var initials: String {
-        guard let name = authVM.currentUser?.name, !name.isEmpty else { return "S" }
+        let name = viewModel.profile?.fullName ?? authVM.currentUser?.name ?? ""
+        guard !name.isEmpty else { return "S" }
         let parts = name.split(separator: " ")
         if parts.count >= 2 {
             return String(parts[0].prefix(1) + parts[1].prefix(1)).uppercased()

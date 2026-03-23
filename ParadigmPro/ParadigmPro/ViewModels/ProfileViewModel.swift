@@ -2,15 +2,20 @@ import Foundation
 
 @MainActor
 final class ProfileViewModel: ObservableObject {
-    @Published var user: User?
-    @Published var enrolledCoursesCount = 0
+    @Published var profile: Profile?
     @Published var isLoading = false
 
-    func setUser(_ user: User?) {
-        self.user = user
-    }
+    private let lessonService = LessonService.shared
 
-    func updateStats(enrolledCount: Int) {
-        enrolledCoursesCount = enrolledCount
+    func fetchProfile() async {
+        isLoading = true
+        do {
+            profile = try await lessonService.fetchProfile()
+        } catch {
+            #if DEBUG
+            print("Profile fetch failed: \(error)")
+            #endif
+        }
+        isLoading = false
     }
 }

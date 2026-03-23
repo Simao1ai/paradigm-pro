@@ -130,10 +130,25 @@ export async function setupAuth(app: Express) {
   });
 }
 
-export const isAuthenticated: RequestHandler = async (req, res, next) => {
+export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
+  // Check Bearer token first (mobile app)
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const { verifyMobileToken } = await import("../../auth/mobile.js");
+      const payload = verifyMobileToken(authHeader.slice(7));
+      if (payload && payload.type === "access") {
+        req.user = { claims: { sub: payload.sub, email: payload.email } };
+        return next();
+      }
+    } catch {}
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Fall back to session auth (web)
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 

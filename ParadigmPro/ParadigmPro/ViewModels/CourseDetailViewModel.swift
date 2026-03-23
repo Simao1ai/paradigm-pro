@@ -2,22 +2,18 @@ import Foundation
 
 @MainActor
 final class CourseDetailViewModel: ObservableObject {
-    @Published var course: Course?
+    @Published var lesson: Lesson?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let courseService = CourseService.shared
+    private let lessonService = LessonService.shared
 
-    var weeks: [Week] {
-        course?.weeks?.sorted(by: { $0.weekNumber < $1.weekNumber }) ?? []
-    }
-
-    func fetchCourseDetail(courseId: String) async {
+    func fetchLesson(slug: String) async {
         isLoading = true
         errorMessage = nil
 
         do {
-            course = try await courseService.fetchCourseDetail(courseId: courseId)
+            lesson = try await lessonService.fetchLesson(slug: slug)
         } catch let error as APIError {
             errorMessage = error.errorDescription
         } catch {

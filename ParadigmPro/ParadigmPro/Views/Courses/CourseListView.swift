@@ -2,110 +2,153 @@ import SwiftUI
 
 struct CourseListView: View {
     @StateObject private var viewModel = CoursesViewModel()
-    @State private var selectedTab = 0
 
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ppBackground
-                    .ignoresSafeArea()
+                Color.ppBackground.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Segmented picker
-                    Picker("", selection: $selectedTab) {
-                        Text("My Courses").tag(0)
-                        Text("Available").tag(1)
+                if viewModel.isLoading && viewModel.lessons.isEmpty {
+                    LoadingView()
+                } else if let error = viewModel.errorMessage, viewModel.lessons.isEmpty {
+                    ErrorView(message: error) {
+                        Task { await viewModel.fetchData() }
                     }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-
-                    if viewModel.isLoading {
-                        LoadingView()
-                    } else if let error = viewModel.errorMessage {
-                        ErrorView(message: error) {
-                            Task { await viewModel.fetchCourses() }
-                        }
-                    } else {
-                        ScrollView {
-                            LazyVGrid(columns: [
-                                GridItem(.flexible(), spacing: 14),
-                                GridItem(.flexible(), spacing: 14)
-                            ], spacing: 14) {
-                                if selectedTab == 0 {
-                                    if viewModel.enrolledCourses.isEmpty {
-                                        emptyState(
-                                            icon: "tray",
-                                            title: "No courses yet",
-                                            subtitle: "Enroll in a course to get started"
-                                        )
-                                    } else {
-                                        ForEach(viewModel.enrolledCourses) { course in
-                                            NavigationLink(value: course) {
-                                                CourseCardView(course: course, isEnrolled: true)
-                                            }
-                                            .buttonStyle(.plain)
-                                        }
-                                    }
-                                } else {
-                                    if viewModel.availableCourses.isEmpty {
-                                        emptyState(
-                                            icon: "checkmark.circle",
-                                            title: "All caught up",
-                                            subtitle: "You're enrolled in all available courses"
-                                        )
-                                    } else {
-                                        ForEach(viewModel.availableCourses) { course in
-                                            CourseCardView(course: course, isEnrolled: false) {
-                                                Task { await viewModel.enroll(courseId: course.id) }
-                                            }
-                                        }
-                                    }
-                                }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Dashboard summary
+                            if let dash = viewModel.dashboard {
+                                dashboardCard(dash)
                             }
-                            .padding()
+
+                            // Affirmation
+                            if let aff = viewModel.dashboard?.affirmation {
+                                VStack(spacing: 6) {
+                                    Text("\"\(aff.content)\"")
+                                        .font(.subheadline.italic())
+                                        .foregroundColor(.ppTextSecondary)
+                                        .multilineTextAlignment(.center)
+                                    Text("— \(aff.author ?? "Bob Proctor")")
+                                        .font(.caption)
+                                        .foregroundColor(.ppTextMuted)
+                                }
+                                .padding(16)
+                                .cardStyle()
+                            }
+
+                            // Section header
+                            HStack {
+                                Text("The 12-Lesson System")
+                                    .font(.headline)
+                                    .foregroundColor(.ppTextPrimary)
+                                Spacer()
+                            }
+
+                            // Lesson cards
+                            ForEach(viewModel.lessons) { lesson in
+                                NavigationLink(value: lesson) {
+                                    lessonRow(lesson)
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
-                        .refreshable {
-                            await viewModel.fetchCourses()
-                        }
+                        .padding()
+                    }
+                    .refreshable {
+                        await viewModel.fetchData()
                     }
                 }
             }
-            .navigationTitle("Courses")
+            .navigationTitle("Paradigm Pro")
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .navigationDestination(for: Course.self) { course in
-                CourseDetailView(courseId: course.id)
+            .navigationDestination(for: Lesson.self) { lesson in
+                LessonView(lesson: lesson)
             }
             .task {
-                await viewModel.fetchCourses()
+                await viewModel.fetchData()
             }
         }
         .tint(.ppOrange)
     }
 
-    private func emptyState(icon: String, title: String, subtitle: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 40))
-                .foregroundColor(.ppTextMuted)
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.ppTextPrimary)
-            Text(subtitle)
-                .font(.subheadline)
-                .foregroundColor(.ppTextSecondary)
+    private func dashboardCard(_ dash: DashboardData) -> some View {
+        HStack(spacing: 20) {
+            ProgressRing(progress: Double(dash.progressPercent) / 100.0, size: 56)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\(dash.lessonsCompleted)/12 Lessons")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.ppTextPrimary)
+
+                HStack(spacing: 12) {
+                    Label("\(dash.currentStreak) streak", systemImage: "flame.fill")
+                        .foregroundColor(.ppOrange)
+                    Label("\(dash.badgeCount) badges", systemImage: "star.fill")
+                        .foregroundColor(.ppIconYellow)
+                }
+                .font(.caption)
+            }
+
+            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 60)
-    }
-}
-
-extension Course: Hashable {
-    static func == (lhs: Course, rhs: Course) -> Bool {
-        lhs.id == rhs.id
+        .padding(16)
+        .cardStyle()
     }
 
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+    private func lessonRow(_ lesson: Lesson) -> some View {
+        HStack(spacing: 14) {
+            // Numbered circle
+            ZStack {
+                Circle()
+                    .fill(viewModel.isLessonCompleted(lesson) ? Color.ppSuccess : Color.ppOrange)
+                    .frame(width: 36, height: 36)
+
+                if viewModel.isLessonCompleted(lesson) {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundColor(.white)
+                } else {
+                    Text("\(lesson.lessonNumber)")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(.white)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(lesson.title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.ppTextPrimary)
+
+                HStack(spacing: 8) {
+                    if let subtitle = lesson.subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundColor(.ppTextSecondary)
+                            .lineLimit(1)
+                    }
+
+                    if let minutes = lesson.estimatedMinutes {
+                        Text("\(minutes) min")
+                            .font(.caption)
+                            .foregroundColor(.ppTextMuted)
+                    }
+
+                    if lesson.hasAudio == true {
+                        Label("Audio", systemImage: "headphones")
+                            .font(.caption)
+                            .foregroundColor(.ppTextMuted)
+                    }
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption2)
+                .foregroundColor(.ppTextMuted)
+        }
+        .padding(14)
+        .cardStyle()
     }
 }

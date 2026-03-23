@@ -6,14 +6,15 @@ final class ProgressService {
 
     private init() {}
 
-    func updateProgress(
-        lessonId: String,
-        videoProgress: Int? = nil,
-        completed: Bool? = nil
-    ) async throws -> LessonProgress {
-        var body: [String: Any] = ["lessonId": lessonId]
-        if let videoProgress { body["videoProgress"] = videoProgress }
-        if let completed { body["completed"] = completed }
-        return try await api.post("/progress", body: body)
+    func fetchProgress() async throws -> [LessonProgress] {
+        try await api.get("/progress")
+    }
+
+    func updateProgress(lessonId: String, status: String) async throws -> LessonProgress {
+        try await api.post("/progress", body: ["lessonId": lessonId, "status": status])
+    }
+
+    func updateProgressBySlug(lessonSlug: String, status: String) async throws -> LessonProgress {
+        try await api.post("/progress", body: ["lessonSlug": lessonSlug, "status": status])
     }
 }

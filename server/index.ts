@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import cron from "node-cron";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth/index.js";
 import { registerRoutes } from "./routes.js";
+import { registerMobileAuthRoutes } from "./auth/mobile.js";
 import { seedDefaultSequences, processEmailQueue, checkInactivity, checkChurnRisk } from "./email/service.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,7 @@ app.set("trust proxy", 1);
 async function start() {
   await setupAuth(app);
   registerAuthRoutes(app);
+  registerMobileAuthRoutes(app);
   registerRoutes(app);
 
   const port = 5000;

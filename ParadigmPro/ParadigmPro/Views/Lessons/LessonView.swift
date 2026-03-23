@@ -10,24 +10,10 @@ struct LessonView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Video player
-                if viewModel.lesson.lessonType == .video, let videoUrl = viewModel.lesson.videoUrl {
-                    VideoPlayerView(
-                        url: videoUrl,
-                        resumeFrom: viewModel.resumeFromSeconds,
-                        onProgressUpdate: { seconds in
-                            Task { await viewModel.saveVideoProgress(seconds: seconds) }
-                        }
-                    )
-                    .frame(height: 220)
-                    .background(Color.black)
-                    .cornerRadius(12)
-                }
-
-                // Lesson type badge + title
+                // Lesson header
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        Text(viewModel.lesson.lessonType.rawValue.capitalized)
+                        Text("Lesson \(viewModel.lesson.lessonNumber)")
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -35,8 +21,14 @@ struct LessonView: View {
                             .foregroundColor(.ppOrange)
                             .cornerRadius(6)
 
-                        if let duration = viewModel.lesson.videoDuration {
-                            Text(duration.formattedDuration)
+                        if let minutes = viewModel.lesson.estimatedMinutes {
+                            Text("\(minutes) min")
+                                .font(.caption)
+                                .foregroundColor(.ppTextMuted)
+                        }
+
+                        if viewModel.lesson.hasAudio == true {
+                            Label("Audio", systemImage: "headphones")
                                 .font(.caption)
                                 .foregroundColor(.ppTextMuted)
                         }
@@ -45,11 +37,31 @@ struct LessonView: View {
                     Text(viewModel.lesson.title)
                         .font(.title3.bold())
                         .foregroundColor(.ppTextPrimary)
+
+                    if let subtitle = viewModel.lesson.subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundColor(.ppTextSecondary)
+                    }
                 }
 
-                // Content
-                if let content = viewModel.lesson.content, !content.isEmpty {
-                    Text(content)
+                // Key principle
+                if let principle = viewModel.lesson.keyPrinciple, !principle.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Key Principle")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.ppOrange)
+                        Text(principle)
+                            .font(.subheadline)
+                            .foregroundColor(.ppTextSecondary)
+                    }
+                    .padding(16)
+                    .cardStyle()
+                }
+
+                // Description
+                if let desc = viewModel.lesson.description, !desc.isEmpty {
+                    Text(desc)
                         .font(.subheadline)
                         .foregroundColor(.ppTextSecondary)
                         .padding(16)
@@ -57,17 +69,17 @@ struct LessonView: View {
                         .cardStyle()
                 }
 
-                // Materials
-                if let materials = viewModel.lesson.materials, !materials.isEmpty {
+                // Assets (PDFs, worksheets, audio)
+                if let assets = viewModel.lesson.assets, !assets.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Materials")
                             .font(.subheadline.weight(.semibold))
                             .foregroundColor(.ppTextPrimary)
 
                         VStack(spacing: 0) {
-                            ForEach(materials) { material in
-                                MaterialRowView(material: material)
-                                if material.id != materials.last?.id {
+                            ForEach(assets) { asset in
+                                assetRow(asset)
+                                if asset.id != assets.last?.id {
                                     Rectangle()
                                         .fill(Color.ppBorder)
                                         .frame(height: 1)
@@ -118,8 +130,43 @@ struct LessonView: View {
             .padding()
         }
         .background(Color.ppBackground)
-        .navigationTitle("Lesson")
+        .navigationTitle("Lesson \(viewModel.lesson.lessonNumber)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private func assetRow(_ asset: LessonAsset) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: iconFor(asset.assetType))
+                .font(.body)
+                .foregroundColor(.ppOrange)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(asset.label)
+                    .font(.subheadline)
+                    .foregroundColor(.ppTextPrimary)
+
+                Text(asset.assetType.uppercased())
+                    .font(.caption2.weight(.medium))
+                    .foregroundColor(.ppTextMuted)
+            }
+
+            Spacer()
+
+            Image(systemName: "arrow.down.circle")
+                .foregroundColor(.ppTextMuted)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
+    private func iconFor(_ type: String) -> String {
+        switch type.lowercased() {
+        case "pdf": return "doc.fill"
+        case "audio": return "headphones"
+        case "worksheet": return "doc.text.fill"
+        default: return "doc.fill"
+        }
     }
 }

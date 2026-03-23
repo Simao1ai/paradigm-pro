@@ -1,19 +1,23 @@
 import Foundation
 
-enum UserRole: String, Codable {
-    case student = "STUDENT"
-    case instructor = "INSTRUCTOR"
-    case admin = "ADMIN"
-}
-
 struct User: Codable, Identifiable {
     let id: String
-    let email: String
+    let email: String?
     let name: String?
-    let role: UserRole
+    let role: String?
     let image: String?
+}
+
+struct Profile: Codable, Identifiable {
+    let id: String
+    let fullName: String
+    let avatarUrl: String?
+    let role: String
+    let points: Int?
+    let level: Int?
+    let onboardingDone: Bool?
+    let lastActiveAt: String?
     let createdAt: String?
-    let updatedAt: String?
 }
 
 struct AuthResponse: Codable {
@@ -24,6 +28,6 @@ struct AuthResponse: Codable {
 
 struct RegisterResponse: Codable {
     let id: String
-    let email: String
+    let email: String?
     let name: String?
 }

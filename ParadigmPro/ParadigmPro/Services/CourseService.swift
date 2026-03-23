@@ -1,16 +1,24 @@
 import Foundation
 
-final class CourseService {
-    static let shared = CourseService()
+final class LessonService {
+    static let shared = LessonService()
     private let api = APIClient.shared
 
     private init() {}
 
-    func fetchCourses() async throws -> [Course] {
-        try await api.get("/courses")
+    func fetchLessons() async throws -> [Lesson] {
+        try await api.get("/lessons")
     }
 
-    func fetchCourseDetail(courseId: String) async throws -> Course {
-        try await api.get("/courses/\(courseId)")
+    func fetchLesson(slug: String) async throws -> Lesson {
+        try await api.get("/lessons/\(slug)")
+    }
+
+    func fetchDashboard() async throws -> DashboardData {
+        try await api.get("/dashboard")
+    }
+
+    func fetchProfile() async throws -> Profile {
+        try await api.get("/profile")
     }
 }
