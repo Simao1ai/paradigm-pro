@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Sparkles, CheckSquare, Square, Clock, Loader2, RefreshCw, ChevronDown, ChevronUp,
 } from "lucide-react";
@@ -17,15 +17,42 @@ interface ActionPlanCardProps {
 }
 
 export default function ActionPlanCard({ lessonId, lessonTitle, lessonContent }: ActionPlanCardProps) {
-  const [checked, setChecked] = useState<Record<number, boolean>>({});
+  const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(true);
+  const [localChecked, setLocalChecked] = useState<Record<number, boolean>>({});
 
-  const { data: existing, refetch } = useQuery<{ plan: { steps: Step[] } | null }>({
+  const { data: existing, refetch } = useQuery<{ plan: any | null }>({
     queryKey: ["/api/ai/action-plan", lessonId],
     queryFn: async () => {
       const res = await fetch(`/api/ai/action-plan/${lessonId}`, { credentials: "include" });
       if (!res.ok) return { plan: null };
       return res.json();
+    },
+  });
+
+  // Sync local checked state from persisted completed_steps when plan loads
+  useEffect(() => {
+    if (existing?.plan?.completed_steps) {
+      const steps: number[] = Array.isArray(existing.plan.completed_steps)
+        ? existing.plan.completed_steps
+        : [];
+      const checked: Record<number, boolean> = {};
+      steps.forEach((i) => { checked[i] = true; });
+      setLocalChecked(checked);
+    } else {
+      setLocalChecked({});
+    }
+  }, [existing?.plan?.id]);
+
+  const saveStepsMutation = useMutation({
+    mutationFn: async (completedSteps: number[]) => {
+      if (!existing?.plan?.id) return;
+      await fetch(`/api/ai/action-plan/${existing.plan.id}/steps`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ completedSteps }),
+      });
     },
   });
 
@@ -42,15 +69,24 @@ export default function ActionPlanCard({ lessonId, lessonTitle, lessonContent }:
     },
     onSuccess: () => {
       refetch();
-      setChecked({});
+      setLocalChecked({});
       setExpanded(true);
     },
   });
 
-  const steps: Step[] = existing?.plan?.steps as Step[] || [];
+  const steps: Step[] = (existing?.plan?.steps as Step[]) || [];
   const hasSteps = steps.length > 0;
-  const completedCount = Object.values(checked).filter(Boolean).length;
+  const completedCount = Object.values(localChecked).filter(Boolean).length;
   const allDone = hasSteps && completedCount === steps.length;
+
+  function toggleStep(i: number) {
+    const newChecked = { ...localChecked, [i]: !localChecked[i] };
+    setLocalChecked(newChecked);
+    const completedSteps = Object.entries(newChecked)
+      .filter(([, v]) => v)
+      .map(([k]) => Number(k));
+    saveStepsMutation.mutate(completedSteps);
+  }
 
   return (
     <div className="card-glass overflow-hidden border-l-4 border-l-orange-500">
@@ -116,11 +152,11 @@ export default function ActionPlanCard({ lessonId, lessonTitle, lessonContent }:
           </div>
 
           {steps.map((step, i) => {
-            const done = checked[i] ?? false;
+            const done = localChecked[i] ?? false;
             return (
               <div
                 key={i}
-                onClick={() => setChecked((prev) => ({ ...prev, [i]: !prev[i] }))}
+                onClick={() => toggleStep(i)}
                 className={`flex gap-3 p-4 rounded-xl border cursor-pointer transition-all select-none ${
                   done
                     ? "bg-emerald-500/10 border-emerald-500/30"

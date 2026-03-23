@@ -11,6 +11,9 @@ import {
   Save,
   Lightbulb,
   Brain,
+  Trophy,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { LESSONS } from "@/lib/constants";
 import CoachingChat from "@/components/CoachingChat";
@@ -47,6 +50,7 @@ export default function LessonDetailPage() {
   const [noteContent, setNoteContent] = useState("");
   const [noteLoaded, setNoteLoaded] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [showQuizHistory, setShowQuizHistory] = useState(false);
 
   const currentIndex = LESSONS.findIndex((l) => l.slug === slug);
   const prevLesson = currentIndex > 0 ? LESSONS[currentIndex - 1] : null;
@@ -82,6 +86,17 @@ export default function LessonDetailPage() {
       return res.json();
     },
     enabled: !!slug,
+  });
+
+  const { data: latestQuizData, refetch: refetchQuiz } = useQuery<{ result: any | null }>({
+    queryKey: ["/api/ai/quiz-result", lesson?.id],
+    queryFn: async () => {
+      if (!lesson?.id) return { result: null };
+      const res = await fetch(`/api/ai/quiz-result/${lesson.id}`, { credentials: "include" });
+      if (!res.ok) return { result: null };
+      return res.json();
+    },
+    enabled: !!lesson?.id,
   });
 
   if (note && !noteLoaded) {
@@ -133,7 +148,8 @@ export default function LessonDetailPage() {
     );
   }
 
-  if (error || !lessonMeta) {
+  // Only show "not found" if the slug isn't recognized at all
+  if (!lessonMeta) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
@@ -271,32 +287,92 @@ export default function LessonDetailPage() {
       )}
 
       {/* Quiz */}
-      {lesson?.id && (
-        <div className="card-glass p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-              <Brain className="h-4 w-4 text-white" />
+      {lesson?.id && (() => {
+        const lastResult = latestQuizData?.result;
+        const lastPct = lastResult
+          ? Math.round((lastResult.score / lastResult.total_questions) * 100)
+          : null;
+        return (
+          <div className="card-glass overflow-hidden border-l-4 border-l-indigo-500">
+            <div className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+                  <Brain className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Test Your Knowledge</p>
+                  {lastResult ? (
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <Trophy className="h-3.5 w-3.5 text-yellow-400" />
+                      <span className={`text-xs font-semibold ${
+                        lastPct! >= 80 ? "text-emerald-400" : lastPct! >= 60 ? "text-yellow-400" : "text-red-400"
+                      }`}>
+                        Last score: {lastResult.score}/{lastResult.total_questions} ({lastPct}%)
+                      </span>
+                      <button
+                        onClick={() => setShowQuizHistory(!showQuizHistory)}
+                        className="text-xs text-muted-foreground hover:text-white flex items-center gap-0.5 transition-colors"
+                      >
+                        {showQuizHistory ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">5 AI-generated questions — no score yet</p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setShowQuiz(true)}
+                className="text-sm font-semibold px-4 py-2 rounded-xl border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10 hover:text-white hover:border-indigo-400 transition-all flex-shrink-0"
+              >
+                {lastResult ? "Retake Quiz" : "Start Quiz"}
+              </button>
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">Test Your Knowledge</p>
-              <p className="text-xs text-muted-foreground">5 AI-generated questions from this lesson</p>
-            </div>
+
+            {showQuizHistory && lastResult && (
+              <div className="px-5 pb-5 border-t border-white/10 pt-4 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Last Quiz Result</p>
+                <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className={`text-2xl font-bold ${
+                    lastPct! >= 80 ? "text-emerald-400" : lastPct! >= 60 ? "text-yellow-400" : "text-red-400"
+                  }`}>
+                    {lastPct}%
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-semibold">
+                      {lastResult.score} / {lastResult.total_questions} correct
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {lastResult.lesson_title} · {new Date(lastResult.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="ml-auto">
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      lastPct! >= 80
+                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : lastPct! >= 60
+                        ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                        : "bg-red-500/20 text-red-400 border border-red-500/30"
+                    }`}>
+                      {lastPct! >= 80 ? "Excellent" : lastPct! >= 60 ? "Good" : "Keep Practicing"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <button
-            onClick={() => setShowQuiz(true)}
-            className="text-sm font-semibold px-4 py-2 rounded-xl border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10 hover:text-white hover:border-indigo-400 transition-all flex-shrink-0"
-          >
-            Start Quiz
-          </button>
-        </div>
-      )}
+        );
+      })()}
 
       {showQuiz && lesson?.id && (
         <QuizModal
           lessonId={lesson.id}
           lessonTitle={displayLesson.title}
           lessonContent={lessonContentStr}
-          onClose={() => setShowQuiz(false)}
+          onClose={() => {
+            setShowQuiz(false);
+            refetchQuiz();
+          }}
         />
       )}
 

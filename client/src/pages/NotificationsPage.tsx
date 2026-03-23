@@ -22,6 +22,12 @@ const TYPE_ICONS: Record<string, string> = {
   weekly_checkin: "✅",
   broadcast: "📢",
   roadmap_reminder: "🗺️",
+  lesson_complete: "✅",
+  course_complete: "🎓",
+  quiz_perfect: "⭐",
+  quiz_done: "🧠",
+  check_in: "🔥",
+  badge: "🏅",
 };
 
 export default function NotificationsPage() {

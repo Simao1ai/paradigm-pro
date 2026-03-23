@@ -125,6 +125,10 @@ async function start() {
       const AI_USER_ID = "ai-coach";
       const existing = await storage.getProfile(AI_USER_ID).catch(() => null);
       if (!existing) {
+        // Must insert into users table first due to FK constraint
+        const { db } = await import("./db.js");
+        const { sql } = await import("drizzle-orm");
+        await db.execute(sql`INSERT INTO users (id, email, first_name) VALUES ('ai-coach', 'ai@paradigmpro.internal', 'AI') ON CONFLICT (id) DO NOTHING`);
         await storage.createProfile({ id: AI_USER_ID, fullName: "AI Coach", avatarUrl: null, role: "consultant" });
       }
       for (const disc of discussions.slice(0, 5)) {

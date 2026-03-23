@@ -67,6 +67,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     staleTime: 1000 * 60 * 5,
   });
 
+  const { data: notificationsData } = useQuery<any[]>({
+    queryKey: ["/api/notifications"],
+    queryFn: async () => {
+      const res = await fetch("/api/notifications", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 30000, // Poll every 30s for new notifications
+  });
+  const unreadCount = (notificationsData || []).filter((n: any) => !n.isRead).length;
+
   const roleNavItems = [
     ...(profile?.role === "admin" ? [
       { href: "/admin", label: "Admin", icon: ShieldCheck },
@@ -231,7 +243,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="relative h-9 w-9 flex items-center justify-center rounded-xl hover:bg-white/10 text-indigo-300 hover:text-white transition-colors"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-gold shadow-orange-glow" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-0.5 shadow-lg">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Link>
 
             {/* Avatar */}

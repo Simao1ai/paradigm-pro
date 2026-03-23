@@ -140,27 +140,51 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // GET progress for a specific lesson by slug
+  app.get("/api/progress/:slug", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const allProgress = await storage.getLessonProgress(userId);
+      const lesson = allProgress.find((p: any) => p.lessonSlug === req.params.slug);
+      res.json(lesson || null);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch progress" });
+    }
+  });
+
   app.post("/api/progress", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { lessonId, status } = req.body;
+      let { lessonId, lessonSlug, status } = req.body;
+
+      // Resolve slug to UUID if needed
+      if (!lessonId && lessonSlug) {
+        const lesson = await storage.getLessonBySlug(lessonSlug);
+        if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+        lessonId = lesson.id;
+      }
+
       const result = await storage.upsertLessonProgress(userId, lessonId, status);
 
-      // If marking completed, award points + activity + badges
+      // If marking completed, award points + notifications + badges
       if (status === "completed") {
         trackEvent(userId, "lesson_complete", { lessonId }).catch(() => {});
         storage.getLessonProgress(userId).then(async (allProgress) => {
           const completedCount = allProgress.filter((p: any) => p.status === "completed").length;
+          const lessonEntry = allProgress.find((p: any) => p.lessonId === lessonId);
+          const lessonTitle = lessonEntry?.lessonTitle || "lesson";
 
-          // Award +10 pts for lesson completion (fire-and-forget)
+          // Award +10 pts for lesson completion
           storage.awardPoints(userId, 10, "Completed a lesson").catch(() => {});
           storage.updateStreak(userId).catch(() => {});
           storage.addActivity(userId, "lesson", `completed a lesson`).catch(() => {});
+          storage.createNotification(userId, "lesson_complete", `Lesson complete! 🎉`, `You finished "${lessonTitle}". Keep the momentum going!`, `/lessons/${lessonSlug || ""}`).catch(() => {});
 
           if (completedCount >= 12) {
             storage.awardPoints(userId, 500, "Completed the full course").catch(() => {});
             triggerEmailSequence(userId, "completion").catch(() => {});
             storage.addActivity(userId, "lesson", `completed the full Thinking Into Results program! 🎉`).catch(() => {});
+            storage.createNotification(userId, "course_complete", "You completed the course! 🏆", "Congratulations! Your certificate is ready to download.", "/certificates").catch(() => {});
             // Auto-issue completion certificate
             storage.getProfile(userId).then(async profile => {
               if (!profile) return;
@@ -190,6 +214,12 @@ export function registerRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const notes = await storage.getUserNotes(userId);
+      // Optionally filter by lessonSlug query param
+      const { lessonSlug } = req.query as { lessonSlug?: string };
+      if (lessonSlug) {
+        const match = notes.find((n: any) => n.lessonSlug === lessonSlug);
+        return res.json(match || null);
+      }
       res.json(notes);
     } catch (error) {
       console.error("Error fetching notes:", error);
@@ -200,7 +230,15 @@ export function registerRoutes(app: Express) {
   app.post("/api/notes", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { lessonId, content } = req.body;
+      let { lessonId, lessonSlug, content } = req.body;
+
+      // Resolve slug to UUID if needed
+      if (!lessonId && lessonSlug) {
+        const lesson = await storage.getLessonBySlug(lessonSlug);
+        if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+        lessonId = lesson.id;
+      }
+
       const note = await storage.upsertNote(userId, lessonId, content);
       res.json(note);
     } catch (error) {
@@ -277,7 +315,18 @@ export function registerRoutes(app: Express) {
         storage.getRoadmapDays(),
         storage.getRoadmapProgress(userId),
       ]);
-      res.json({ days, progress });
+      // Merge days with progress so frontend gets a flat RoadmapDay[] array
+      const merged = days.map((day: any) => {
+        const prog = progress.find((p: any) => p.dayNumber === day.dayNumber);
+        return {
+          day: day.dayNumber,
+          title: day.title,
+          description: day.description || "",
+          completed: prog?.completed ?? false,
+          reflection: prog?.reflection ?? null,
+        };
+      });
+      res.json(merged);
     } catch (error) {
       console.error("Error fetching roadmap:", error);
       res.status(500).json({ message: "Failed to fetch roadmap" });
@@ -317,6 +366,23 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Error marking notification:", error);
       res.status(500).json({ message: "Failed to mark notification" });
+    }
+  });
+
+  // PATCH /api/notifications — mark single or all read
+  app.patch("/api/notifications", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { notificationId, markAll } = req.body;
+      if (markAll) {
+        const notifs = await storage.getUserNotifications(userId);
+        await Promise.all(notifs.filter((n: any) => !n.isRead).map((n: any) => storage.markNotificationRead(n.id, userId)));
+      } else if (notificationId) {
+        await storage.markNotificationRead(notificationId, userId);
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update notification" });
     }
   });
 
@@ -744,6 +810,17 @@ CONTENT: ${lessonContent || "No additional content provided."}`;
     }
   });
 
+  app.patch("/api/ai/action-plan/:planId/steps", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { completedSteps } = req.body;
+      await storage.updateActionPlanCompletedSteps(req.params.planId, userId, completedSteps);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save step progress" });
+    }
+  });
+
   // ── AI Quiz Generator ──────────────────────────────────────────────────────
 
   app.post("/api/ai/generate-quiz", isAuthenticated, async (req: any, res) => {
@@ -801,11 +878,15 @@ CONTENT: ${lessonContent || "No additional content provided."}`;
       const { lessonId, lessonTitle, score, totalQuestions, answers } = req.body;
       const result = await storage.saveQuizResult(userId, lessonId, lessonTitle, score, totalQuestions, answers);
       trackEvent(userId, "quiz_submit", { lessonId, score, totalQuestions }).catch(() => {});
+      const pct = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
       // Award points for perfect score
       if (score === totalQuestions && totalQuestions > 0) {
         storage.awardPoints(userId, 25, `Perfect quiz score on ${lessonTitle}`).catch(() => {});
         storage.addActivity(userId, "lesson", `scored 100% on the ${lessonTitle} quiz!`).catch(() => {});
+        storage.createNotification(userId, "quiz_perfect", "Perfect quiz score! 🌟", `You scored 100% on the "${lessonTitle}" quiz. +25 bonus points!`).catch(() => {});
         storage.checkAndAwardBadges(userId).catch(() => {});
+      } else {
+        storage.createNotification(userId, "quiz_done", `Quiz complete — ${pct}%`, `You answered ${score}/${totalQuestions} correctly on "${lessonTitle}". ${pct >= 70 ? "Great job!" : "Keep practicing!"}`).catch(() => {});
       }
       res.json({ result });
     } catch (error) {
@@ -1041,6 +1122,8 @@ Write a warm, personalized 2-3 sentence insight. Be specific to their actual win
       storage.updateStreak(userId).catch(() => {});
       storage.addActivity(userId, "checkin", `completed their daily check-in`).catch(() => {});
       storage.checkAndAwardBadges(userId).catch(() => {});
+      const streakMsg = streak > 1 ? `You're on a ${streak}-day streak! +5 points earned.` : "Great job completing your daily check-in! +5 points earned.";
+      storage.createNotification(userId, "check_in", "Daily check-in complete ✅", streakMsg, "/check-in").catch(() => {});
       res.json({ ...checkIn, streak });
     } catch (err) {
       console.error("Check-in error:", err);

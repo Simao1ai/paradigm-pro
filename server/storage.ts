@@ -221,6 +221,14 @@ class DatabaseStorage {
       .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
   }
 
+  async createNotification(userId: string, type: string, title: string, body?: string, actionUrl?: string) {
+    try {
+      await db.insert(notifications).values({ userId, type, title, body, actionUrl });
+    } catch {
+      // Silently ignore — notifications are non-critical
+    }
+  }
+
   async getUserSubscription(userId: string) {
     const [sub] = await db.select().from(subscriptions)
       .where(eq(subscriptions.userId, userId))
@@ -490,12 +498,19 @@ class DatabaseStorage {
   }
 
   async getLatestActionPlan(userId: string, lessonId: string) {
-    const [plan] = await db.select()
-      .from(actionPlans)
-      .where(and(eq(actionPlans.userId, userId), eq(actionPlans.lessonId, lessonId)))
-      .orderBy(desc(actionPlans.createdAt))
-      .limit(1);
-    return plan || null;
+    const result = await db.execute(
+      sql`SELECT *, COALESCE(completed_steps, '[]'::jsonb) as completed_steps
+          FROM action_plans
+          WHERE user_id = ${userId} AND lesson_id = ${lessonId}
+          ORDER BY created_at DESC LIMIT 1`
+    );
+    return (result.rows[0] as any) || null;
+  }
+
+  async updateActionPlanCompletedSteps(planId: string, userId: string, completedSteps: number[]) {
+    await db.execute(
+      sql`UPDATE action_plans SET completed_steps = ${JSON.stringify(completedSteps)}::jsonb WHERE id = ${planId} AND user_id = ${userId}`
+    );
   }
 
   // ── Quiz Results ───────────────────────────────────────────────────────────
@@ -971,6 +986,7 @@ class DatabaseStorage {
       if (!def) return;
       await this.awardBadge(userId, def.id);
       await this.addActivity(userId, "badge", `Earned the "${def.name}" badge`).catch(() => {});
+      await this.createNotification(userId, "badge", `Badge unlocked: ${def.name} 🏅`, def.description || "You've earned a new achievement!", "/badges").catch(() => {});
       awarded.push(slug);
     };
 
@@ -1335,7 +1351,7 @@ class DatabaseStorage {
     const popularResult = await db.execute(sql`
       SELECT l.title,
         COUNT(lp.id) as views,
-        COUNT(lp.id) FILTER (WHERE lp.completed = TRUE) as completions
+        COUNT(lp.id) FILTER (WHERE lp.status = 'completed') as completions
       FROM lessons l
       LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id
       WHERE l.is_published = TRUE
@@ -1358,7 +1374,7 @@ class DatabaseStorage {
     const lessonResult = await db.execute(sql`
       SELECT l.id, l.title,
         COUNT(lp.id) as views,
-        COUNT(lp.id) FILTER (WHERE lp.completed = TRUE) as completions,
+        COUNT(lp.id) FILTER (WHERE lp.status = 'completed') as completions,
         (SELECT COUNT(*) FROM forum_discussions fd WHERE fd.lesson_id = l.id) as discussions
       FROM lessons l
       LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id
@@ -1417,7 +1433,7 @@ class DatabaseStorage {
         p.full_name,
         p.last_active_at,
         p.avatar_url,
-        COUNT(lp.id) FILTER (WHERE lp.completed = TRUE) as lessons_done,
+        COUNT(lp.id) FILTER (WHERE lp.status = 'completed') as lessons_done,
         MAX(dc.created_at) as last_checkin,
         s.status as sub_status
       FROM profiles p
