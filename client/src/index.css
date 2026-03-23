@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    border-color: hsl(245, 30%, 22%);
+  }
+  body {
+    background-color: #1e1b4b;
+    color: #fafaf9;
+    font-family: 'Inter', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* ── Cards ── */
+  .card-glass {
+    border-radius: 1rem;
+    border: 1px solid rgba(79, 70, 229, 0.25);
+    background: linear-gradient(135deg, rgba(39, 37, 90, 0.85) 0%, rgba(49, 46, 122, 0.6) 100%);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card-glass:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ── Primary button (orange) ── */
+  .btn-gold {
+    background: linear-gradient(135deg, #f97316 0%, #ea6a00 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 9999px;
+    padding: 0.75rem 2rem;
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-gold:hover {
+    transform: scale(1.04) translateY(-1px);
+    box-shadow: 0 8px 28px rgba(249, 115, 22, 0.55);
+    filter: brightness(1.08);
+  }
+  .btn-gold:active {
+    transform: scale(0.98);
+  }
+
+  /* ── Secondary button (ghost) ── */
+  .btn-secondary {
+    background: transparent;
+    color: #f97316;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 0.75rem 2rem;
+    border: 2px solid rgba(249, 115, 22, 0.5);
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-secondary:hover {
+    background: rgba(249, 115, 22, 0.12);
+    border-color: #f97316;
+    transform: scale(1.03);
+  }
+
+  /* ── Danger button ── */
+  .btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 9999px;
+    padding: 0.75rem 2rem;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-danger:hover {
+    transform: scale(1.04);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5);
+  }
+
+  /* ── Input ── */
+  .input {
+    background: rgba(49, 46, 122, 0.5);
+    border: 1px solid rgba(79, 70, 229, 0.3);
+    border-radius: 0.75rem;
+    color: #fafaf9;
+    padding: 0.625rem 1rem;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    outline: none;
+    width: 100%;
+  }
+  .input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+  }
+
+  /* ── Shimmer text effect (orange-pink) ── */
+  .gold-shimmer {
+    background-image: linear-gradient(90deg, #f97316, #ec4899, #f97316);
+    background-size: 200% auto;
+    animation: shimmer 3s infinite linear;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ── Gradient badge pill ── */
+  .badge-gradient {
+    background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(236,72,153,0.15));
+    border: 1px solid rgba(249,115,22,0.3);
+    color: #fb923c;
+    border-radius: 9999px;
+    padding: 0.25rem 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── Feature card hover lift ── */
+  .card-feature {
+    border-radius: 1rem;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    background: linear-gradient(135deg, rgba(39, 37, 90, 0.9) 0%, rgba(49, 46, 122, 0.7) 100%);
+    backdrop-filter: blur(10px);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .card-feature:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(249,115,22,0.2);
+    border-color: rgba(249,115,22,0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in {
+  0% { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.4s ease-out;
+}
