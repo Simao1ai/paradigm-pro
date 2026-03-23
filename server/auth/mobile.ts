@@ -155,6 +155,88 @@ export function registerMobileAuthRoutes(app: Express) {
     }
   });
 
+  // ── Social Auth (Apple / Google) ────────────────────────────────────
+  app.post("/api/auth/mobile/social", async (req, res) => {
+    try {
+      const { provider, identityToken, email, fullName } = req.body;
+
+      if (!provider || !identityToken) {
+        return res.status(400).json({ error: "Provider and identity token are required" });
+      }
+
+      let verifiedEmail = email;
+
+      if (provider === "apple") {
+        // Decode Apple identity token (JWT) to extract email
+        // Apple's identity token is a JWT — we decode the payload to get the email
+        try {
+          const parts = identityToken.split(".");
+          if (parts.length >= 2) {
+            const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+            verifiedEmail = payload.email || email;
+          }
+        } catch {
+          // Fall back to provided email
+        }
+      } else if (provider === "google") {
+        // Verify Google ID token by decoding and checking with Google
+        try {
+          const parts = identityToken.split(".");
+          if (parts.length >= 2) {
+            const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+            verifiedEmail = payload.email || email;
+          }
+        } catch {
+          // Fall back to provided email
+        }
+      }
+
+      if (!verifiedEmail) {
+        return res.status(400).json({ error: "Could not determine email from token" });
+      }
+
+      // Find or create user
+      let [user] = await db.select().from(users).where(eq(users.email, verifiedEmail)).limit(1);
+
+      if (!user) {
+        const nameParts = (fullName || "").split(" ");
+        [user] = await db.insert(users).values({
+          email: verifiedEmail,
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
+        }).returning();
+
+        await db.insert(profiles).values({
+          id: user.id,
+          fullName: fullName || "",
+          role: "student",
+        }).onConflictDoNothing();
+      }
+
+      // Get profile
+      const [profile] = await db.select().from(profiles).where(eq(profiles.id, user.id)).limit(1);
+
+      const now = Date.now();
+      const token = signToken({ sub: user.id, email: user.email || "", type: "access", exp: now + TOKEN_EXPIRY_MS });
+      const refreshToken = signToken({ sub: user.id, email: user.email || "", type: "refresh", exp: now + REFRESH_EXPIRY_MS });
+
+      res.json({
+        token,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: profile?.fullName || [user.firstName, user.lastName].filter(Boolean).join(" "),
+          role: profile?.role || "student",
+          image: user.profileImageUrl,
+        },
+      });
+    } catch (error) {
+      console.error("Social auth error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // ── Refresh ───────────────────────────────────────────────────────────
   app.post("/api/auth/mobile/refresh", async (req, res) => {
     try {

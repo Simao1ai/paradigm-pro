@@ -42,6 +42,7 @@
 		A10033 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10033; };
 		A10034 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10034; };
 		A10035 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10035; };
+		A10036 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10036; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -81,6 +82,8 @@
 		B10033 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		B10034 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		B10035 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B10036 /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
+		B10037 /* ParadigmPro.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ParadigmPro.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,6 +117,7 @@
 			isa = PBXGroup;
 			children = (
 				B10001 /* ParadigmProApp.swift */,
+				B10037 /* ParadigmPro.entitlements */,
 				B10035 /* Assets.xcassets */,
 				E10003 /* Models */,
 				E10004 /* Services */,
@@ -146,6 +150,7 @@
 				B10009 /* EnrollmentService.swift */,
 				B10010 /* KeychainManager.swift */,
 				B10011 /* ProgressService.swift */,
+				B10036 /* AppleSignInCoordinator.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -351,6 +356,7 @@
 				A10032 /* Constants.swift in Sources */,
 				A10033 /* Extensions.swift in Sources */,
 				A10034 /* PreviewData.swift in Sources */,
+				A10036 /* AppleSignInCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -481,6 +487,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ParadigmPro/ParadigmPro.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ParadigmPro/Preview Content\"";
@@ -509,6 +516,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ParadigmPro/ParadigmPro.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ParadigmPro/Preview Content\"";

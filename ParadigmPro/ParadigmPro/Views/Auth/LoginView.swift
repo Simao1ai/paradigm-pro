@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
     @EnvironmentObject var authVM: AuthViewModel
@@ -31,6 +32,35 @@ struct LoginView: View {
                     .cornerRadius(10)
                 }
 
+                // Sign in with Apple
+                Button(action: {
+                    Task { await authVM.signInWithApple() }
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "apple.logo")
+                            .font(.body.weight(.medium))
+                        Text("Continue with Apple")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                }
+                .disabled(authVM.isLoading)
+
+                // Divider
+                HStack {
+                    Rectangle().fill(Color.ppBorder).frame(height: 1)
+                    Text("or")
+                        .font(.caption)
+                        .foregroundColor(.ppTextMuted)
+                        .padding(.horizontal, 12)
+                    Rectangle().fill(Color.ppBorder).frame(height: 1)
+                }
+
+                // Email
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Email")
                         .font(.subheadline.weight(.medium))
@@ -47,6 +77,7 @@ struct LoginView: View {
                         .darkInputStyle()
                 }
 
+                // Password
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Password")
                         .font(.subheadline.weight(.medium))
