@@ -3,7 +3,7 @@ import Foundation
 enum Constants {
     // MARK: - API Configuration
     // Update this to your Replit deployment URL
-    static let apiBaseURL = "https://paradigm-pro.replit.app/api"
+    static let apiBaseURL = "https://myparadigmpro.com/api"
 
     // MARK: - Keychain
     static let keychainServiceName = "com.paradigmpro.ios"
