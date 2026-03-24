@@ -190,6 +190,42 @@ struct LessonView: View {
     }
 }
 
+// MARK: - Lesson Detail Loader (loads by slug from Dashboard navigation)
+
+struct LessonDetailLoader: View {
+    let slug: String
+    @State private var lesson: Lesson?
+    @State private var isLoading = true
+    @State private var error: String?
+
+    var body: some View {
+        ZStack {
+            Color.ppBackground.ignoresSafeArea()
+
+            if isLoading {
+                LoadingView()
+            } else if let lesson = lesson {
+                LessonView(lesson: lesson)
+            } else if let error = error {
+                ErrorView(message: error) {
+                    Task { await loadLesson() }
+                }
+            }
+        }
+        .task { await loadLesson() }
+    }
+
+    private func loadLesson() async {
+        isLoading = true
+        do {
+            lesson = try await LessonService.shared.fetchLesson(slug: slug)
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
+    }
+}
+
 // Type-erased button style wrapper
 struct AnyButtonStyle: ButtonStyle {
     private let _makeBody: (Configuration) -> AnyView

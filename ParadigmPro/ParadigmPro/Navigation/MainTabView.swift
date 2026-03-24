@@ -15,9 +15,24 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
+            DashboardView()
+                .tabItem {
+                    Label("Home", systemImage: "house.fill")
+                }
+
             CourseListView()
                 .tabItem {
                     Label("Lessons", systemImage: "book.fill")
+                }
+
+            CheckInView()
+                .tabItem {
+                    Label("Check-In", systemImage: "sun.horizon.fill")
+                }
+
+            GoalsView()
+                .tabItem {
+                    Label("Goals", systemImage: "target")
                 }
 
             ProfileView()

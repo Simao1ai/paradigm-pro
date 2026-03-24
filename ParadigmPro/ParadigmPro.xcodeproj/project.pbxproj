@@ -43,6 +43,12 @@
 		A10034 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10034; };
 		A10035 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10035; };
 		A10036 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10036; };
+		A10037 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10038; };
+		A10038 /* CheckInViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10039; };
+		A10039 /* GoalsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10040; };
+		A10040 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10041; };
+		A10041 /* CheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10042; };
+		A10042 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10043; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +90,12 @@
 		B10035 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10036 /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
 		B10037 /* ParadigmPro.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ParadigmPro.entitlements; sourceTree = "<group>"; };
+		B10038 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		B10039 /* CheckInViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInViewModel.swift; sourceTree = "<group>"; };
+		B10040 /* GoalsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsViewModel.swift; sourceTree = "<group>"; };
+		B10041 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		B10042 /* CheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInView.swift; sourceTree = "<group>"; };
+		B10043 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +175,9 @@
 				B10014 /* CourseDetailViewModel.swift */,
 				B10015 /* LessonViewModel.swift */,
 				B10016 /* ProfileViewModel.swift */,
+				B10038 /* DashboardViewModel.swift */,
+				B10039 /* CheckInViewModel.swift */,
+				B10040 /* GoalsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -171,8 +186,11 @@
 			isa = PBXGroup;
 			children = (
 				E10007 /* Auth */,
+				E10015 /* Dashboard */,
 				E10008 /* Courses */,
 				E10009 /* Lessons */,
+				E10016 /* CheckIn */,
+				E10017 /* Goals */,
 				E10010 /* Profile */,
 				E10014 /* Components */,
 			);
@@ -251,6 +269,30 @@
 				B10030 /* ErrorView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		E10015 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				B10041 /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		E10016 /* CheckIn */ = {
+			isa = PBXGroup;
+			children = (
+				B10042 /* CheckInView.swift */,
+			);
+			path = CheckIn;
+			sourceTree = "<group>";
+		};
+		E10017 /* Goals */ = {
+			isa = PBXGroup;
+			children = (
+				B10043 /* GoalsView.swift */,
+			);
+			path = Goals;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -357,6 +399,12 @@
 				A10033 /* Extensions.swift in Sources */,
 				A10034 /* PreviewData.swift in Sources */,
 				A10036 /* AppleSignInCoordinator.swift in Sources */,
+				A10037 /* DashboardViewModel.swift in Sources */,
+				A10038 /* CheckInViewModel.swift in Sources */,
+				A10039 /* GoalsViewModel.swift in Sources */,
+				A10040 /* DashboardView.swift in Sources */,
+				A10041 /* CheckInView.swift in Sources */,
+				A10042 /* GoalsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
