@@ -7,6 +7,7 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth/index.
 import { registerRoutes } from "./routes.js";
 import { registerMobileAuthRoutes } from "./auth/mobile.js";
 import { seedDefaultSequences, processEmailQueue, checkInactivity, checkChurnRisk } from "./email/service.js";
+import { seedDatabase } from "./seed.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +24,7 @@ async function start() {
   await setupAuth(app);
   registerAuthRoutes(app);
   registerMobileAuthRoutes(app);
+  await seedDatabase();
   registerRoutes(app);
 
   const port = 5000;
