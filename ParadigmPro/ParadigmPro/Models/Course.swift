@@ -40,8 +40,32 @@ struct DashboardData: Codable {
     let progressPercent: Int
     let completedLessonNumbers: [Int]
     let nextLesson: NextLesson?
+    let upcomingSession: UpcomingSession?
     let checkInToday: Bool
     let checkInStreak: Int?
+    let coachInsight: String?
+    let activeGoals: [DashboardGoal]?
+    let pendingActionItems: [DashboardActionItem]?
+}
+
+struct UpcomingSession: Codable {
+    let scheduledAt: String
+    let zoomMeetingUrl: String?
+}
+
+struct DashboardGoal: Codable, Identifiable {
+    let id: String
+    let title: String
+    let status: String?
+    let targetDate: String?
+}
+
+struct DashboardActionItem: Codable, Identifiable {
+    let id: String
+    let title: String
+    let description: String?
+    let dueDate: String?
+    let completed: Bool?
 }
 
 struct Affirmation: Codable {
