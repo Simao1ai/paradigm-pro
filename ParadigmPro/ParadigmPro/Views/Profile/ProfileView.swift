@@ -15,21 +15,16 @@ struct ProfileView: View {
                         HStack(spacing: 16) {
                             ZStack {
                                 Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [.ppOrange, .ppOrangeLight],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 56, height: 56)
+                                    .fill(PPGradient.cta)
+                                    .frame(width: 60, height: 60)
+                                    .shadow(color: .ppOrange.opacity(0.4), radius: 12, x: 0, y: 0)
 
                                 Text(initials)
                                     .font(.title3.bold())
                                     .foregroundColor(.white)
                             }
 
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 5) {
                                 Text(viewModel.profile?.fullName ?? authVM.currentUser?.name ?? "Student")
                                     .font(.headline)
                                     .foregroundColor(.ppTextPrimary)
@@ -40,49 +35,47 @@ struct ProfileView: View {
 
                                 if let role = viewModel.profile?.role {
                                     Text(role.capitalized)
-                                        .font(.caption.weight(.medium))
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 2)
-                                        .background(Color.ppOrange.opacity(0.15))
-                                        .foregroundColor(.ppOrange)
-                                        .cornerRadius(4)
+                                        .font(.caption.weight(.semibold))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 3)
+                                        .background(PPGradient.cta)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(12)
                                 }
                             }
 
                             Spacer()
                         }
-                        .padding(16)
+                        .padding(20)
                         .cardStyle()
 
                         // Stats
                         if let profile = viewModel.profile {
-                            HStack(spacing: 0) {
-                                statItem(value: "\(profile.points ?? 0)", label: "Points")
-                                Divider().frame(height: 30).background(Color.ppBorder)
-                                statItem(value: "\(profile.level ?? 1)", label: "Level")
+                            HStack(spacing: 12) {
+                                statItem(
+                                    value: "\(profile.points ?? 0)",
+                                    label: "Points",
+                                    icon: "bolt.fill",
+                                    color: .ppOrange
+                                )
+                                statItem(
+                                    value: "\(profile.level ?? 1)",
+                                    label: "Level",
+                                    icon: "arrow.up.circle.fill",
+                                    color: .ppIconBlue
+                                )
                             }
-                            .padding(.vertical, 12)
-                            .cardStyle()
                         }
 
-                        // Version
+                        // App info
                         VStack(spacing: 0) {
-                            HStack {
-                                Text("Version")
-                                    .font(.subheadline)
-                                    .foregroundColor(.ppTextSecondary)
-                                Spacer()
-                                Text("1.0.0")
-                                    .font(.subheadline)
-                                    .foregroundColor(.ppTextMuted)
-                            }
-                            .padding(16)
+                            infoRow(label: "Version", value: "1.0.0")
                         }
                         .cardStyle()
 
                         // Sign out
                         Button(action: { authVM.logout() }) {
-                            HStack {
+                            HStack(spacing: 8) {
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
                                 Text("Sign Out")
                             }
@@ -101,16 +94,34 @@ struct ProfileView: View {
         .tint(.ppOrange)
     }
 
-    private func statItem(value: String, label: String) -> some View {
-        VStack(spacing: 4) {
+    private func statItem(value: String, label: String, icon: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(color)
             Text(value)
-                .font(.title3.weight(.bold))
-                .foregroundColor(.ppOrange)
+                .font(.title2.weight(.bold))
+                .foregroundColor(.ppTextPrimary)
             Text(label)
-                .font(.caption)
-                .foregroundColor(.ppTextMuted)
+                .font(.caption2.weight(.medium))
+                .foregroundColor(.ppTextSecondary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .cardStyle()
+    }
+
+    private func infoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(.ppTextSecondary)
+            Spacer()
+            Text(value)
+                .font(.subheadline)
+                .foregroundColor(.ppTextMuted)
+        }
+        .padding(16)
     }
 
     private var initials: String {

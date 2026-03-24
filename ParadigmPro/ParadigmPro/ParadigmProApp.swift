@@ -5,16 +5,16 @@ struct ParadigmProApp: App {
     @StateObject private var authViewModel = AuthViewModel()
 
     init() {
-        // Dark navigation bar matching site
+        // Navigation bar matching #1e1b4b
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
-        navAppearance.backgroundColor = UIColor(red: 26/255, green: 26/255, blue: 46/255, alpha: 1)
-        navAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        navAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        navAppearance.backgroundColor = UIColor(red: 0x1e/255, green: 0x1b/255, blue: 0x4b/255, alpha: 1)
+        navAppearance.titleTextAttributes = [.foregroundColor: UIColor(red: 0xfa/255, green: 0xfa/255, blue: 0xf9/255, alpha: 1)]
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor(red: 0xfa/255, green: 0xfa/255, blue: 0xf9/255, alpha: 1)]
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().compactAppearance = navAppearance
-        UINavigationBar.appearance().tintColor = UIColor(red: 255/255, green: 107/255, blue: 53/255, alpha: 1)
+        UINavigationBar.appearance().tintColor = UIColor(red: 0xf9/255, green: 0x73/255, blue: 0x16/255, alpha: 1)
     }
 
     var body: some Scene {

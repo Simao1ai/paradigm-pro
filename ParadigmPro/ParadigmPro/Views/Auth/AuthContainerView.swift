@@ -6,21 +6,25 @@ struct AuthContainerView: View {
 
     var body: some View {
         ZStack {
-            // Dark gradient background matching site hero
-            LinearGradient(
-                colors: [
-                    Color.ppBackground,
-                    Color(red: 30/255, green: 25/255, blue: 55/255),
-                    Color.ppBackground
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Hero gradient background (matching site: #1e1b4b → #4f46e5 → #f97316)
+            PPGradient.hero
+                .ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 0) {
-                    Spacer(minLength: 60)
+                    Spacer(minLength: 50)
+
+                    // Brand header
+                    VStack(spacing: 8) {
+                        Text("Break the Pattern.")
+                            .font(.system(size: 28, weight: .bold, design: .serif))
+                            .foregroundColor(.ppTextPrimary)
+
+                        Text("Own the Results.")
+                            .font(.system(size: 28, weight: .bold, design: .serif))
+                            .foregroundStyle(PPGradient.gold)
+                    }
+                    .padding(.bottom, 8)
 
                     if showRegister {
                         RegisterView()
@@ -28,7 +32,6 @@ struct AuthContainerView: View {
                         LoginView()
                     }
 
-                    // Toggle link
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             showRegister.toggle()
@@ -38,18 +41,18 @@ struct AuthContainerView: View {
                         if showRegister {
                             HStack(spacing: 4) {
                                 Text("Already have an account?")
-                                    .foregroundColor(.ppTextMuted)
+                                    .foregroundColor(.ppTextSecondary)
                                 Text("Sign in")
                                     .foregroundColor(.ppOrange)
-                                    .fontWeight(.medium)
+                                    .fontWeight(.semibold)
                             }
                         } else {
                             HStack(spacing: 4) {
                                 Text("Don't have an account?")
-                                    .foregroundColor(.ppTextMuted)
+                                    .foregroundColor(.ppTextSecondary)
                                 Text("Register")
                                     .foregroundColor(.ppOrange)
-                                    .fontWeight(.medium)
+                                    .fontWeight(.semibold)
                             }
                         }
                     }

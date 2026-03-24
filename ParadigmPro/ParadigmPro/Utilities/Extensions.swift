@@ -17,44 +17,77 @@ extension String {
     }
 }
 
-// MARK: - Brand Colors (matching myparadigmpro.com)
+// MARK: - Brand Colors (exact match: myparadigmpro.com Tailwind config)
 
 extension Color {
-    // Dark navy backgrounds
-    static let ppBackground = Color(red: 26/255, green: 26/255, blue: 46/255)       // #1a1a2e - main bg
-    static let ppSurface = Color(red: 37/255, green: 37/255, blue: 67/255)           // #252543 - card bg
-    static let ppSurfaceLight = Color(red: 45/255, green: 45/255, blue: 80/255)      // #2d2d50 - hover/elevated
-    static let ppBorder = Color(red: 55/255, green: 55/255, blue: 90/255)            // #37375a - subtle borders
+    // Navy backgrounds (from tailwind.config.ts semantic tokens)
+    static let ppBackground = Color(red: 0x1e/255, green: 0x1b/255, blue: 0x4b/255)     // #1e1b4b brand-navy
+    static let ppSurface = Color(red: 0x27/255, green: 0x25/255, blue: 0x5a/255)         // #27255a brand-navy-mid (card)
+    static let ppSurfaceLight = Color(red: 0x31/255, green: 0x2e/255, blue: 0x7a/255)    // #312e7a brand-navy-light
+    static let ppBorder = Color(red: 0x31/255, green: 0x2e/255, blue: 0x7a/255)          // #312e7a (border/input)
 
-    // Orange accent (primary CTA)
-    static let ppOrange = Color(red: 255/255, green: 107/255, blue: 53/255)          // #ff6b35
-    static let ppOrangeLight = Color(red: 255/255, green: 140/255, blue: 90/255)     // lighter for gradients
-    static let ppOrangeDark = Color(red: 230/255, green: 80/255, blue: 30/255)       // darker press state
+    // Primary gold (CTA)
+    static let ppOrange = Color(red: 0xf9/255, green: 0x73/255, blue: 0x16/255)          // #f97316 brand-gold
+    static let ppOrangeLight = Color(red: 0xfb/255, green: 0x92/255, blue: 0x3c/255)     // #fb923c brand-gold-light
+    static let ppOrangeDark = Color(red: 0xea/255, green: 0x6a/255, blue: 0x00/255)      // #ea6a00 brand-gold-dark
 
-    // Coral/pink accent ("Own the Results" text)
-    static let ppCoral = Color(red: 255/255, green: 120/255, blue: 100/255)          // #ff7864
+    // Accent pink
+    static let ppPink = Color(red: 0xec/255, green: 0x48/255, blue: 0x99/255)            // #ec4899 brand-pink
+    static let ppPinkLight = Color(red: 0xf4/255, green: 0x72/255, blue: 0xb6/255)       // #f472b6 brand-pink-light
+    static let ppCoral = ppPink
+
+    // Indigo (used in hero/CTA gradients)
+    static let ppIndigo = Color(red: 0x4f/255, green: 0x46/255, blue: 0xe5/255)          // #4f46e5
 
     // Text colors
-    static let ppTextPrimary = Color.white
-    static let ppTextSecondary = Color(red: 180/255, green: 180/255, blue: 200/255)  // light gray-blue
-    static let ppTextMuted = Color(red: 130/255, green: 130/255, blue: 160/255)      // muted
+    static let ppTextPrimary = Color(red: 0xfa/255, green: 0xfa/255, blue: 0xf9/255)     // #fafaf9 foreground
+    static let ppTextSecondary = Color(red: 0x9c/255, green: 0xa3/255, blue: 0xaf/255)   // #9ca3af gray-400
+    static let ppTextMuted = Color(red: 0x6b/255, green: 0x72/255, blue: 0x80/255)       // #6b7280 gray-500
 
-    // Feature icon circle colors (from the "What's Included" section)
-    static let ppIconBlue = Color(red: 59/255, green: 130/255, blue: 246/255)        // blue
-    static let ppIconOrange = Color(red: 249/255, green: 115/255, blue: 22/255)      // orange
-    static let ppIconGreen = Color(red: 34/255, green: 197/255, blue: 94/255)        // green
-    static let ppIconPurple = Color(red: 168/255, green: 85/255, blue: 247/255)      // purple
-    static let ppIconRed = Color(red: 239/255, green: 68/255, blue: 68/255)          // red
-    static let ppIconYellow = Color(red: 234/255, green: 179/255, blue: 8/255)       // yellow
+    // Status
+    static let ppSuccess = Color(red: 0x10/255, green: 0xb9/255, blue: 0x81/255)         // #10b981 emerald
+    static let ppError = Color(red: 0xef/255, green: 0x44/255, blue: 0x44/255)           // #EF4444 red
 
-    // Status colors
-    static let ppSuccess = Color(red: 34/255, green: 197/255, blue: 94/255)
-    static let ppError = Color(red: 239/255, green: 68/255, blue: 68/255)
+    // Icon colors
+    static let ppIconBlue = Color(red: 0x3b/255, green: 0x82/255, blue: 0xf6/255)        // #3b82f6
+    static let ppIconOrange = ppOrange
+    static let ppIconGreen = ppSuccess
+    static let ppIconPurple = Color(red: 0xa8/255, green: 0x55/255, blue: 0xf7/255)      // #a855f7
+    static let ppIconRed = ppError
+    static let ppIconYellow = Color(red: 0xea/255, green: 0xb3/255, blue: 0x08/255)      // #eab308
 
-    // Legacy aliases for compatibility
+    // Legacy aliases
     static let paradigmBlue = ppOrange
     static let paradigmGreen = ppSuccess
     static let paradigmBackground = ppBackground
+}
+
+// MARK: - Brand Gradients
+
+enum PPGradient {
+    // Hero: 135deg #1e1b4b → #4f46e5 → #f97316
+    static let hero = LinearGradient(
+        colors: [.ppBackground, .ppIndigo, .ppOrange],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+
+    // CTA button: 135deg #4f46e5 → #f97316
+    static let cta = LinearGradient(
+        colors: [.ppIndigo, .ppOrange],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+
+    // Gold shimmer: #f97316 → #ec4899 → #f97316
+    static let gold = LinearGradient(
+        colors: [.ppOrange, .ppPink, .ppOrange],
+        startPoint: .leading, endPoint: .trailing
+    )
+
+    // Card: 135deg #27255a → #312e7a
+    static let card = LinearGradient(
+        colors: [.ppSurface, .ppSurfaceLight],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
 }
 
 // MARK: - Int Duration Formatting
@@ -76,12 +109,13 @@ extension Int {
 struct CardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(Color.ppSurface)
-            .cornerRadius(12)
+            .background(PPGradient.card)
+            .cornerRadius(20)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.ppBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.ppBorder.opacity(0.5), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.25), radius: 16, x: 0, y: 8)
     }
 }
 
@@ -94,16 +128,12 @@ struct PrimaryButtonStyle: ButtonStyle {
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(
-                LinearGradient(
-                    colors: [Color.ppOrange, Color.ppOrangeLight],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(10)
-            .opacity(configuration.isPressed ? 0.85 : 1)
+            .background(PPGradient.cta)
+            .cornerRadius(12)
+            .shadow(color: Color.ppOrange.opacity(configuration.isPressed ? 0 : 0.4), radius: 12, x: 0, y: 0)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .opacity(isLoading ? 0.6 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -114,13 +144,14 @@ struct SecondaryButtonStyle: ButtonStyle {
             .foregroundColor(.ppTextPrimary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(Color.ppSurface)
-            .cornerRadius(10)
+            .background(Color.ppSurfaceLight)
+            .cornerRadius(12)
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.ppBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.ppBorder.opacity(0.5), lineWidth: 1)
             )
-            .opacity(configuration.isPressed ? 0.85 : 1)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -131,11 +162,11 @@ struct DarkInputFieldStyle: ViewModifier {
             .foregroundColor(.ppTextPrimary)
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(Color.ppSurfaceLight)
-            .cornerRadius(10)
+            .background(Color.ppSurfaceLight.opacity(0.5))
+            .cornerRadius(12)
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.ppBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.ppBorder.opacity(0.5), lineWidth: 1)
             )
     }
 }
