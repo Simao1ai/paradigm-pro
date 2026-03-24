@@ -194,7 +194,7 @@ struct CheckInView: View {
                     } label: {
                         VStack(spacing: 6) {
                             Text(option.emoji)
-                                .font(.system(size: 28))
+                                .font(.largeTitle)
                                 .scaleEffect(viewModel.mood == option.value ? 1.15 : 1.0)
                             Text(option.label)
                                 .font(.system(size: 9, weight: .medium))
@@ -235,9 +235,9 @@ struct CheckInView: View {
 
     private var winStep: some View {
         wizardTextField(
-            emoji: "🏆",
+            emoji: "\u{1F3C6}",
             title: "What's one win from today?",
-            subtitle: "Big or small — all wins count.",
+            subtitle: "Big or small - all wins count.",
             placeholder: "e.g. I completed lesson 3, had a great conversation...",
             text: $viewModel.wins,
             onBack: { viewModel.step = 0 },
@@ -250,7 +250,7 @@ struct CheckInView: View {
 
     private var challengeStep: some View {
         wizardTextField(
-            emoji: "💪",
+            emoji: "\u{1F4AA}",
             title: "What's one challenge you're facing?",
             subtitle: "Acknowledging it is the first step.",
             placeholder: "e.g. Hard to stay focused, procrastinating...",
@@ -265,7 +265,7 @@ struct CheckInView: View {
 
     private var tomorrowStep: some View {
         VStack(spacing: 16) {
-            Text("🎯").font(.system(size: 36))
+            Text("\u{1F3AF}").font(.system(size: 40))
             Text("What's your #1 priority for tomorrow?")
                 .font(.title3.weight(.bold))
                 .foregroundColor(.ppTextPrimary)
@@ -315,7 +315,7 @@ struct CheckInView: View {
 
     private func wizardTextField(emoji: String, title: String, subtitle: String, placeholder: String, text: Binding<String>, onBack: @escaping () -> Void, onNext: @escaping () -> Void, nextDisabled: Bool) -> some View {
         VStack(spacing: 16) {
-            Text(emoji).font(.system(size: 36))
+            Text(emoji).font(.system(size: 40))
             Text(title)
                 .font(.title3.weight(.bold))
                 .foregroundColor(.ppTextPrimary)
@@ -411,11 +411,11 @@ struct CheckInView: View {
 
     private var moodOptions: [(value: Int, emoji: String, label: String)] {
         [
-            (1, "😞", "Struggling"),
-            (2, "😕", "Not great"),
-            (3, "😐", "Okay"),
-            (4, "🙂", "Good"),
-            (5, "🔥", "Amazing!"),
+            (1, "\u{1F61E}", "Struggling"),
+            (2, "\u{1F615}", "Not great"),
+            (3, "\u{1F610}", "Okay"),
+            (4, "\u{1F642}", "Good"),
+            (5, "\u{1F525}", "Amazing!"),
         ]
     }
 }

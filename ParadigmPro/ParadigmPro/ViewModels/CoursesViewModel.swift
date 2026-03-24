@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class CoursesViewModel: ObservableObject {
-    @Published var lessons: [Lesson] = []
+    @Published var lessons: [LessonMeta] = ALL_LESSONS
     @Published var dashboard: DashboardData?
     @Published var completedLessonNumbers: Set<Int> = []
     @Published var progressMap: [String: String] = [:] // slug -> status
@@ -17,12 +17,10 @@ final class CoursesViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            async let lessonsTask = lessonService.fetchLessons()
             async let dashboardTask = lessonService.fetchDashboard()
             async let progressTask = progressService.fetchProgress()
 
-            let (fetchedLessons, fetchedDashboard, fetchedProgress) = try await (lessonsTask, dashboardTask, progressTask)
-            lessons = fetchedLessons.sorted(by: { $0.lessonNumber < $1.lessonNumber })
+            let (fetchedDashboard, fetchedProgress) = try await (dashboardTask, progressTask)
             dashboard = fetchedDashboard
             completedLessonNumbers = Set(fetchedDashboard.completedLessonNumbers)
 
@@ -43,7 +41,7 @@ final class CoursesViewModel: ObservableObject {
         isLoading = false
     }
 
-    func isLessonCompleted(_ lesson: Lesson) -> Bool {
-        completedLessonNumbers.contains(lesson.lessonNumber)
+    func isLessonCompleted(_ lesson: LessonMeta) -> Bool {
+        completedLessonNumbers.contains(lesson.number)
     }
 }

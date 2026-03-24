@@ -102,8 +102,8 @@ struct DashboardView: View {
             .navigationDestination(for: NextLesson.self) { next in
                 LessonDetailLoader(slug: next.slug)
             }
-            .navigationDestination(for: Lesson.self) { lesson in
-                LessonView(lesson: lesson)
+            .navigationDestination(for: LessonMeta.self) { lesson in
+                LessonMetaView(lessonMeta: lesson)
             }
             .task {
                 await viewModel.fetchData()
@@ -132,7 +132,7 @@ struct DashboardView: View {
                     .foregroundColor(.ppTextPrimary)
                     .lineSpacing(3)
 
-                Text("— \(aff.author ?? "Bob Proctor")")
+                Text("\u{2014} \(aff.author ?? "Bob Proctor")")
                     .font(.caption)
                     .foregroundColor(.ppTextMuted)
             }
@@ -154,7 +154,7 @@ struct DashboardView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.ppOrange.opacity(0.2))
                     .frame(width: 40, height: 40)
-                Text("🔥")
+                Text("\u{1F525}")
                     .font(.title3)
             }
 
@@ -364,7 +364,7 @@ struct DashboardView: View {
                 }
                 .buttonStyle(.plain)
             } else {
-                Text("All lessons complete! 🎉")
+                Text("All lessons complete! \u{1F389}")
                     .font(.caption)
                     .foregroundColor(.ppTextMuted)
             }
@@ -559,7 +559,7 @@ struct DashboardView: View {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(viewModel.lessons.prefix(6)) { lesson in
                     NavigationLink(value: lesson) {
-                        lessonMiniCard(lesson, isCompleted: dash.completedLessonNumbers.contains(lesson.lessonNumber))
+                        lessonMiniCard(lesson, isCompleted: dash.completedLessonNumbers.contains(lesson.number))
                     }
                     .buttonStyle(.plain)
                 }
@@ -567,7 +567,7 @@ struct DashboardView: View {
         }
     }
 
-    private func lessonMiniCard(_ lesson: Lesson, isCompleted: Bool) -> some View {
+    private func lessonMiniCard(_ lesson: LessonMeta, isCompleted: Bool) -> some View {
         HStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
@@ -582,7 +582,7 @@ struct DashboardView: View {
                         .font(.caption.weight(.bold))
                         .foregroundColor(.ppOrange)
                 } else {
-                    Text("\(lesson.lessonNumber)")
+                    Text("\(lesson.number)")
                         .font(.caption.weight(.bold))
                         .foregroundColor(.ppTextMuted)
                 }
@@ -593,11 +593,9 @@ struct DashboardView: View {
                     .font(.caption.weight(.medium))
                     .foregroundColor(.ppTextPrimary)
                     .lineLimit(1)
-                if let min = lesson.estimatedMinutes {
-                    Text("\(min) min")
-                        .font(.system(size: 10))
-                        .foregroundColor(.ppTextMuted)
-                }
+                Text("\(lesson.estimatedMinutes) min")
+                    .font(.system(size: 10))
+                    .foregroundColor(.ppTextMuted)
             }
         }
         .padding(12)

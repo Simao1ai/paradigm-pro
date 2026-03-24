@@ -1,52 +1,28 @@
 import SwiftUI
 
-struct LessonView: View {
-    @StateObject private var viewModel: LessonViewModel
+// MARK: - LessonMetaView (uses hardcoded LessonMeta data + progress API)
 
-    init(lesson: Lesson) {
-        _viewModel = StateObject(wrappedValue: LessonViewModel(lesson: lesson))
+struct LessonMetaView: View {
+    let lessonMeta: LessonMeta
+    @StateObject private var viewModel: LessonMetaViewModel
+
+    init(lessonMeta: LessonMeta) {
+        self.lessonMeta = lessonMeta
+        _viewModel = StateObject(wrappedValue: LessonMetaViewModel(lessonMeta: lessonMeta))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Lesson header card (matches web screenshot)
                 lessonHeaderCard
-
-                // Key principle card
-                if let principle = viewModel.lesson.keyPrinciple, !principle.isEmpty {
-                    keyPrincipleCard(principle)
-                }
-
-                // Mark complete button
+                keyPrincipleCard
                 markCompleteButton
-
-                // My Notes section
                 notesSection
-
-                // Materials
-                if let assets = viewModel.lesson.assets, !assets.isEmpty {
-                    materialsSection(assets)
-                }
-
-                // Error
-                if let error = viewModel.errorMessage {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.circle.fill")
-                        Text(error)
-                    }
-                    .font(.caption)
-                    .foregroundColor(.ppError)
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.ppError.opacity(0.1))
-                    .cornerRadius(12)
-                }
             }
             .padding(16)
         }
         .background(Color.ppBackground)
-        .navigationTitle("Lesson \(viewModel.lesson.lessonNumber)")
+        .navigationTitle("Lesson \(lessonMeta.number)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .task {
@@ -54,56 +30,62 @@ struct LessonView: View {
         }
     }
 
-    // MARK: - Lesson Header Card
+    // MARK: - Header Card
 
     private var lessonHeaderCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 14) {
-                // Lesson number circle
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
                         .fill(Color.ppIndigo.opacity(0.3))
                         .frame(width: 44, height: 44)
-                    Text("\(viewModel.lesson.lessonNumber)")
+                    Text("\(lessonMeta.number)")
                         .font(.headline.weight(.bold))
                         .foregroundColor(.ppIndigo)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("LESSON \(viewModel.lesson.lessonNumber)")
+                    Text("LESSON \(lessonMeta.number)")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.ppOrange)
                         .tracking(1)
-
-                    Text(viewModel.lesson.title)
+                    Text(lessonMeta.title)
                         .font(.title3.bold())
                         .foregroundColor(.ppTextPrimary)
                 }
             }
 
-            if let subtitle = viewModel.lesson.subtitle, !subtitle.isEmpty {
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundColor(.ppTextSecondary)
-            }
+            Text(lessonMeta.subtitle)
+                .font(.subheadline)
+                .foregroundColor(.ppTextSecondary)
 
-            // Description
-            if let desc = viewModel.lesson.description, !desc.isEmpty {
-                Text(desc)
-                    .font(.subheadline)
-                    .foregroundColor(.ppTextSecondary)
-                    .lineSpacing(4)
-            }
+            Text(lessonMeta.description)
+                .font(.subheadline)
+                .foregroundColor(.ppTextSecondary)
+                .lineSpacing(4)
 
-            // Duration
-            if let minutes = viewModel.lesson.estimatedMinutes {
+            HStack(spacing: 12) {
                 HStack(spacing: 4) {
-                    Image(systemName: "book.fill")
+                    Image(systemName: "clock")
                         .font(.system(size: 10))
-                    Text("\(minutes) min")
+                    Text("\(lessonMeta.estimatedMinutes) min")
                 }
                 .font(.caption)
                 .foregroundColor(.ppTextMuted)
+
+                if lessonMeta.hasAudio {
+                    HStack(spacing: 4) {
+                        Image(systemName: "headphones")
+                            .font(.system(size: 10))
+                        Text("Audio")
+                    }
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.ppPink.opacity(0.15))
+                    .foregroundColor(.ppPink)
+                    .cornerRadius(8)
+                }
             }
         }
         .padding(20)
@@ -112,7 +94,7 @@ struct LessonView: View {
 
     // MARK: - Key Principle
 
-    private func keyPrincipleCard(_ principle: String) -> some View {
+    private var keyPrincipleCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: "lightbulb.fill")
@@ -124,7 +106,7 @@ struct LessonView: View {
                     .tracking(1)
             }
 
-            Text("\u{201C}\(principle)\u{201D}")
+            Text("\u{201C}\(lessonMeta.keyPrinciple)\u{201D}")
                 .font(.subheadline.italic())
                 .foregroundColor(.ppTextPrimary)
                 .lineSpacing(3)
@@ -133,7 +115,7 @@ struct LessonView: View {
         .cardStyle()
     }
 
-    // MARK: - Mark Complete Button
+    // MARK: - Mark Complete
 
     private var markCompleteButton: some View {
         Button(action: {
@@ -153,7 +135,7 @@ struct LessonView: View {
             : AnyButtonStyle(PrimaryButtonStyle()))
     }
 
-    // MARK: - My Notes Section
+    // MARK: - Notes
 
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -201,107 +183,117 @@ struct LessonView: View {
                 .font(.caption)
                 .transition(.opacity)
             }
+
+            if let error = viewModel.errorMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                    Text(error)
+                }
+                .font(.caption)
+                .foregroundColor(.ppError)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.ppError.opacity(0.1))
+                .cornerRadius(12)
+            }
         }
         .padding(20)
         .cardStyle()
     }
+}
 
-    // MARK: - Materials
+// MARK: - LessonMetaViewModel
 
-    private func materialsSection(_ assets: [LessonAsset]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Materials")
-                .font(.headline)
-                .foregroundColor(.ppTextPrimary)
+@MainActor
+final class LessonMetaViewModel: ObservableObject {
+    let lessonMeta: LessonMeta
+    @Published var isCompleted = false
+    @Published var errorMessage: String?
+    @Published var noteContent = ""
+    @Published var isSavingNote = false
+    @Published var noteSaved = false
 
-            VStack(spacing: 0) {
-                ForEach(assets) { asset in
-                    assetRow(asset)
-                    if asset.id != assets.last?.id {
-                        Rectangle()
-                            .fill(Color.ppBorder.opacity(0.3))
-                            .frame(height: 1)
-                            .padding(.leading, 48)
-                    }
-                }
-            }
-            .cardStyle()
+    private let progressService = ProgressService.shared
+    private let lessonService = LessonService.shared
+
+    init(lessonMeta: LessonMeta) {
+        self.lessonMeta = lessonMeta
+    }
+
+    func toggleCompletion() async {
+        let newStatus = isCompleted ? "not_started" : "completed"
+
+        do {
+            _ = try await progressService.updateProgressBySlug(
+                lessonSlug: lessonMeta.slug,
+                status: newStatus
+            )
+            isCompleted = !isCompleted
+        } catch let error as APIError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 
-    private func assetRow(_ asset: LessonAsset) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.ppOrange.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: iconFor(asset.assetType))
-                    .font(.body)
-                    .foregroundColor(.ppOrange)
+    func loadNote() async {
+        // Load progress status
+        do {
+            let allProgress = try await progressService.fetchProgress()
+            if let p = allProgress.first(where: { $0.lessonSlug == lessonMeta.slug }) {
+                isCompleted = p.isCompleted
             }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(asset.label)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.ppTextPrimary)
-                Text(asset.assetType.uppercased())
-                    .font(.caption2.weight(.bold))
-                    .foregroundColor(.ppTextMuted)
-            }
-
-            Spacer()
-
-            Image(systemName: "arrow.down.circle.fill")
-                .font(.title3)
-                .foregroundColor(.ppOrange)
+        } catch {
+            #if DEBUG
+            print("Failed to load progress: \(error)")
+            #endif
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+
+        // Load notes
+        do {
+            let notes = try await lessonService.fetchNotes()
+            if let note = notes.first(where: { $0.lessonSlug == lessonMeta.slug }) {
+                noteContent = note.content
+            }
+        } catch {
+            #if DEBUG
+            print("Failed to load note: \(error)")
+            #endif
+        }
     }
 
-    private func iconFor(_ type: String) -> String {
-        switch type.lowercased() {
-        case "pdf": return "doc.fill"
-        case "audio": return "headphones"
-        case "worksheet": return "doc.text.fill"
-        default: return "doc.fill"
+    func saveNote() async {
+        isSavingNote = true
+        noteSaved = false
+
+        do {
+            _ = try await lessonService.saveNote(lessonSlug: lessonMeta.slug, content: noteContent)
+            noteSaved = true
+            Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                noteSaved = false
+            }
+        } catch let error as APIError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = error.localizedDescription
         }
+
+        isSavingNote = false
     }
 }
 
-// MARK: - Lesson Detail Loader (loads by slug from Dashboard navigation)
+// MARK: - LessonDetailLoader (loads by slug from Dashboard navigation)
 
 struct LessonDetailLoader: View {
     let slug: String
-    @State private var lesson: Lesson?
-    @State private var isLoading = true
-    @State private var error: String?
 
     var body: some View {
-        ZStack {
-            Color.ppBackground.ignoresSafeArea()
-
-            if isLoading {
-                LoadingView()
-            } else if let lesson = lesson {
-                LessonView(lesson: lesson)
-            } else if let error = error {
-                ErrorView(message: error) {
-                    Task { await loadLesson() }
-                }
-            }
+        if let meta = ALL_LESSONS.first(where: { $0.slug == slug }) {
+            LessonMetaView(lessonMeta: meta)
+        } else {
+            ErrorView(message: "Lesson not found") {}
         }
-        .task { await loadLesson() }
-    }
-
-    private func loadLesson() async {
-        isLoading = true
-        do {
-            lesson = try await LessonService.shared.fetchLesson(slug: slug)
-        } catch {
-            self.error = error.localizedDescription
-        }
-        isLoading = false
     }
 }
 

@@ -8,9 +8,9 @@ struct CourseListView: View {
             ZStack {
                 Color.ppBackground.ignoresSafeArea()
 
-                if viewModel.isLoading && viewModel.lessons.isEmpty {
+                if viewModel.isLoading && viewModel.dashboard == nil {
                     LoadingView()
-                } else if let error = viewModel.errorMessage, viewModel.lessons.isEmpty {
+                } else if let error = viewModel.errorMessage, viewModel.dashboard == nil {
                     ErrorView(message: error) {
                         Task { await viewModel.fetchData() }
                     }
@@ -79,8 +79,8 @@ struct CourseListView: View {
             }
             .navigationTitle("My Lessons")
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .navigationDestination(for: Lesson.self) { lesson in
-                LessonView(lesson: lesson)
+            .navigationDestination(for: LessonMeta.self) { lesson in
+                LessonMetaView(lessonMeta: lesson)
             }
             .task {
                 await viewModel.fetchData()
@@ -89,9 +89,9 @@ struct CourseListView: View {
         .tint(.ppOrange)
     }
 
-    // MARK: - Lesson Card (matches web card grid)
+    // MARK: - Lesson Card
 
-    private func lessonCard(_ lesson: Lesson) -> some View {
+    private func lessonCard(_ lesson: LessonMeta) -> some View {
         let isCompleted = viewModel.isLessonCompleted(lesson)
         let isInProgress = viewModel.progressMap[lesson.slug] == "in_progress"
 
@@ -116,7 +116,7 @@ struct CourseListView: View {
                             .font(.subheadline)
                             .foregroundColor(.ppOrange)
                     } else {
-                        Text("\(lesson.lessonNumber)")
+                        Text("\(lesson.number)")
                             .font(.caption.weight(.bold))
                             .foregroundColor(isInProgress ? .ppIconBlue : .ppTextMuted)
                     }
@@ -141,28 +141,24 @@ struct CourseListView: View {
                 .multilineTextAlignment(.leading)
 
             // Subtitle
-            if let subtitle = lesson.subtitle, !subtitle.isEmpty {
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.ppTextMuted)
-                    .lineLimit(2)
-            }
+            Text(lesson.subtitle)
+                .font(.caption)
+                .foregroundColor(.ppTextMuted)
+                .lineLimit(2)
 
             Spacer(minLength: 0)
 
             // Bottom: time + audio + PDF
             HStack(spacing: 10) {
-                if let min = lesson.estimatedMinutes {
-                    HStack(spacing: 3) {
-                        Image(systemName: "clock")
-                            .font(.system(size: 9))
-                        Text("\(min) min")
-                    }
-                    .font(.caption2)
-                    .foregroundColor(.ppTextMuted)
+                HStack(spacing: 3) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 9))
+                    Text("\(lesson.estimatedMinutes) min")
                 }
+                .font(.caption2)
+                .foregroundColor(.ppTextMuted)
 
-                if lesson.hasAudio == true {
+                if lesson.hasAudio {
                     HStack(spacing: 3) {
                         Image(systemName: "play.circle")
                             .font(.system(size: 9))
