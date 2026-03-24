@@ -1,10 +1,10 @@
 import SwiftUI
 
-// Kept for Xcode project compatibility — no longer used since lessons are flat.
+// Kept for Xcode project compatibility
 struct WeekView: View {
-    let lesson: Lesson
+    let lessonMeta: LessonMeta
 
     var body: some View {
-        LessonView(lesson: lesson)
+        LessonMetaView(lessonMeta: lessonMeta)
     }
 }
