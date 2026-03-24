@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class DashboardViewModel: ObservableObject {
     @Published var dashboard: DashboardData?
+    @Published var lessons: [Lesson] = []
     @Published var todayCheckIn: CheckIn?
     @Published var notifications: [AppNotification] = []
     @Published var unreadCount = 0
@@ -17,11 +18,13 @@ final class DashboardViewModel: ObservableObject {
 
         do {
             async let dashTask = service.fetchDashboard()
+            async let lessonsTask = service.fetchLessons()
             async let checkInTask = service.fetchTodayCheckIn()
             async let notifTask = service.fetchNotifications()
 
-            let (dash, checkIn, notifs) = try await (dashTask, checkInTask, notifTask)
+            let (dash, fetchedLessons, checkIn, notifs) = try await (dashTask, lessonsTask, checkInTask, notifTask)
             dashboard = dash
+            lessons = fetchedLessons.sorted { $0.lessonNumber < $1.lessonNumber }
             todayCheckIn = checkIn
             notifications = notifs
             unreadCount = notifs.filter { $0.read != true }.count

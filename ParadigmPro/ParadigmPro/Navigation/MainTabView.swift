@@ -17,22 +17,22 @@ struct MainTabView: View {
         TabView {
             DashboardView()
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
+                    Label("Dashboard", systemImage: "square.grid.2x2.fill")
                 }
 
             CourseListView()
                 .tabItem {
-                    Label("Lessons", systemImage: "book.fill")
+                    Label("My Lessons", systemImage: "book.fill")
                 }
 
             CheckInView()
                 .tabItem {
-                    Label("Check-In", systemImage: "sun.horizon.fill")
+                    Label("Check-In", systemImage: "flame.fill")
                 }
 
             GoalsView()
                 .tabItem {
-                    Label("Goals", systemImage: "target")
+                    Label("My Goals", systemImage: "target")
                 }
 
             ProfileView()

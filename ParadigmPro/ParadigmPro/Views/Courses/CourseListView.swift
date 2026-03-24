@@ -16,69 +16,57 @@ struct CourseListView: View {
                     }
                 } else {
                     ScrollView {
-                        VStack(spacing: 20) {
-                            // Dashboard stats row
-                            if let dash = viewModel.dashboard {
-                                statsRow(dash)
-                            }
+                        VStack(spacing: 16) {
+                            // Header
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("My Lessons")
+                                    .font(.title2.bold())
+                                    .foregroundColor(.ppTextPrimary)
 
-                            // Daily affirmation
-                            if let aff = viewModel.dashboard?.affirmation {
+                                let completed = viewModel.completedLessonNumbers.count
+                                Text("\(completed) of 12 lessons completed")
+                                    .font(.subheadline)
+                                    .foregroundColor(.ppTextSecondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // Overall progress bar
+                            if let dash = viewModel.dashboard {
                                 VStack(spacing: 8) {
-                                    Text("\"\(aff.content)\"")
-                                        .font(.subheadline.italic())
-                                        .foregroundColor(.ppTextPrimary)
-                                        .multilineTextAlignment(.center)
-                                    Text("— \(aff.author ?? "Bob Proctor")")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundColor(.ppOrange)
-                                }
-                                .padding(20)
-                                .cardStyle()
-                            }
-
-                            // Section header with progress bar
-                            if let dash = viewModel.dashboard {
-                                VStack(alignment: .leading, spacing: 10) {
                                     HStack {
-                                        Text("The 12-Lesson System")
-                                            .font(.title3.weight(.bold))
+                                        Text("Overall Progress")
+                                            .font(.subheadline.weight(.medium))
                                             .foregroundColor(.ppTextPrimary)
                                         Spacer()
-                                        Text("\(dash.lessonsCompleted)/12")
-                                            .font(.subheadline.weight(.semibold))
+                                        Text("\(dash.progressPercent)%")
+                                            .font(.subheadline)
                                             .foregroundColor(.ppOrange)
                                     }
 
-                                    // Overall progress bar
                                     GeometryReader { geo in
                                         ZStack(alignment: .leading) {
                                             RoundedRectangle(cornerRadius: 4)
-                                                .fill(Color.ppSurfaceLight)
-                                                .frame(height: 6)
-
+                                                .fill(Color.ppBackground)
+                                                .frame(height: 8)
                                             RoundedRectangle(cornerRadius: 4)
                                                 .fill(PPGradient.gold)
-                                                .frame(width: geo.size.width * CGFloat(dash.progressPercent) / 100, height: 6)
+                                                .frame(width: max(0, geo.size.width * CGFloat(dash.progressPercent) / 100), height: 8)
                                         }
                                     }
-                                    .frame(height: 6)
+                                    .frame(height: 8)
                                 }
-                            } else {
-                                HStack {
-                                    Text("The 12-Lesson System")
-                                        .font(.title3.weight(.bold))
-                                        .foregroundColor(.ppTextPrimary)
-                                    Spacer()
-                                }
+                                .padding(16)
+                                .cardStyle()
                             }
 
-                            // Lesson cards
-                            ForEach(viewModel.lessons) { lesson in
-                                NavigationLink(value: lesson) {
-                                    lessonRow(lesson)
+                            // Lesson cards grid
+                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                                ForEach(viewModel.lessons) { lesson in
+                                    NavigationLink(value: lesson) {
+                                        lessonCard(lesson)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.horizontal, 16)
@@ -89,7 +77,7 @@ struct CourseListView: View {
                     }
                 }
             }
-            .navigationTitle("Paradigm Pro")
+            .navigationTitle("My Lessons")
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationDestination(for: Lesson.self) { lesson in
                 LessonView(lesson: lesson)
@@ -101,116 +89,105 @@ struct CourseListView: View {
         .tint(.ppOrange)
     }
 
-    // MARK: - Stats Row (4 mini cards like web dashboard)
+    // MARK: - Lesson Card (matches web card grid)
 
-    private func statsRow(_ dash: DashboardData) -> some View {
-        HStack(spacing: 12) {
-            statCard(
-                value: "\(dash.progressPercent)%",
-                label: "Progress",
-                icon: "chart.bar.fill",
-                color: .ppIconBlue
-            )
-            statCard(
-                value: "\(dash.currentStreak)",
-                label: "Streak",
-                icon: "flame.fill",
-                color: .ppOrange
-            )
-            statCard(
-                value: "\(dash.badgeCount)",
-                label: "Badges",
-                icon: "star.fill",
-                color: .ppIconYellow
-            )
-        }
-    }
+    private func lessonCard(_ lesson: Lesson) -> some View {
+        let isCompleted = viewModel.isLessonCompleted(lesson)
+        let isInProgress = viewModel.progressMap[lesson.slug] == "in_progress"
 
-    private func statCard(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundColor(color)
+        return VStack(alignment: .leading, spacing: 10) {
+            // Top: number + status
+            HStack {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isCompleted ? Color.ppOrange.opacity(0.2) :
+                              isInProgress ? Color.ppIconBlue.opacity(0.2) :
+                              Color.ppSurfaceLight)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(isCompleted ? Color.ppOrange.opacity(0.4) :
+                                        isInProgress ? Color.ppIconBlue.opacity(0.4) :
+                                        Color.ppBorder.opacity(0.5), lineWidth: 1)
+                        )
+                        .frame(width: 36, height: 36)
 
-            Text(value)
-                .font(.title2.weight(.bold))
+                    if isCompleted {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.subheadline)
+                            .foregroundColor(.ppOrange)
+                    } else {
+                        Text("\(lesson.lessonNumber)")
+                            .font(.caption.weight(.bold))
+                            .foregroundColor(isInProgress ? .ppIconBlue : .ppTextMuted)
+                    }
+                }
+
+                Spacer()
+
+                Text(isCompleted ? "Complete" :
+                     isInProgress ? "In Progress" :
+                     "Not started")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(isCompleted ? .ppOrange :
+                                    isInProgress ? .ppIconBlue :
+                                    .ppTextMuted)
+            }
+
+            // Title
+            Text(lesson.title)
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(.ppTextPrimary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
 
-            Text(label)
-                .font(.caption2.weight(.medium))
-                .foregroundColor(.ppTextSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .cardStyle()
-    }
-
-    // MARK: - Lesson Row
-
-    private func lessonRow(_ lesson: Lesson) -> some View {
-        HStack(spacing: 14) {
-            // Numbered circle with gradient
-            ZStack {
-                if viewModel.isLessonCompleted(lesson) {
-                    Circle()
-                        .fill(Color.ppSuccess)
-                        .frame(width: 40, height: 40)
-                    Image(systemName: "checkmark")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundColor(.white)
-                } else {
-                    Circle()
-                        .fill(PPGradient.cta)
-                        .frame(width: 40, height: 40)
-                        .shadow(color: .ppOrange.opacity(0.3), radius: 6, x: 0, y: 0)
-                    Text("\(lesson.lessonNumber)")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundColor(.white)
-                }
+            // Subtitle
+            if let subtitle = lesson.subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.ppTextMuted)
+                    .lineLimit(2)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(lesson.title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.ppTextPrimary)
+            Spacer(minLength: 0)
 
-                HStack(spacing: 8) {
-                    if let subtitle = lesson.subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.caption)
-                            .foregroundColor(.ppTextSecondary)
-                            .lineLimit(1)
+            // Bottom: time + audio + PDF
+            HStack(spacing: 10) {
+                if let min = lesson.estimatedMinutes {
+                    HStack(spacing: 3) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 9))
+                        Text("\(min) min")
                     }
-
-                    if let minutes = lesson.estimatedMinutes {
-                        HStack(spacing: 3) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 9))
-                            Text("\(minutes) min")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.ppTextMuted)
-                    }
-
-                    if lesson.hasAudio == true {
-                        HStack(spacing: 3) {
-                            Image(systemName: "headphones")
-                                .font(.system(size: 9))
-                            Text("Audio")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.ppPink)
-                    }
+                    .font(.caption2)
+                    .foregroundColor(.ppTextMuted)
                 }
-            }
 
-            Spacer()
+                if lesson.hasAudio == true {
+                    HStack(spacing: 3) {
+                        Image(systemName: "play.circle")
+                            .font(.system(size: 9))
+                        Text("Audio")
+                    }
+                    .font(.caption2)
+                    .foregroundColor(.ppOrange.opacity(0.6))
+                }
 
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
+                HStack(spacing: 3) {
+                    Image(systemName: "doc")
+                        .font(.system(size: 9))
+                    Text("PDF")
+                }
+                .font(.caption2)
                 .foregroundColor(.ppTextMuted)
+            }
         }
-        .padding(16)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            isCompleted ? Color.ppOrange.opacity(0.03) :
+            isInProgress ? Color.ppIconBlue.opacity(0.03) :
+            Color.clear
+        )
         .cardStyle()
     }
 }

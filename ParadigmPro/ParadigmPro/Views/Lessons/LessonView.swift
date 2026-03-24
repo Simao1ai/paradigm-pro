@@ -10,123 +10,26 @@ struct LessonView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Lesson number + metadata badges
-                HStack(spacing: 10) {
-                    Text("Lesson \(viewModel.lesson.lessonNumber)")
-                        .font(.caption.weight(.bold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(PPGradient.cta)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-
-                    if let minutes = viewModel.lesson.estimatedMinutes {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 10))
-                            Text("\(minutes) min")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.ppTextSecondary)
-                    }
-
-                    if viewModel.lesson.hasAudio == true {
-                        HStack(spacing: 4) {
-                            Image(systemName: "headphones")
-                                .font(.system(size: 10))
-                            Text("Audio")
-                        }
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.ppPink.opacity(0.15))
-                        .foregroundColor(.ppPink)
-                        .cornerRadius(8)
-                    }
-                }
-
-                // Title
-                Text(viewModel.lesson.title)
-                    .font(.title2.bold())
-                    .foregroundColor(.ppTextPrimary)
-
-                if let subtitle = viewModel.lesson.subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.body)
-                        .foregroundColor(.ppTextSecondary)
-                }
+                // Lesson header card (matches web screenshot)
+                lessonHeaderCard
 
                 // Key principle card
                 if let principle = viewModel.lesson.keyPrinciple, !principle.isEmpty {
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "lightbulb.fill")
-                            .font(.title3)
-                            .foregroundColor(.ppOrange)
-                            .padding(.top, 2)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Key Principle")
-                                .font(.caption.weight(.bold))
-                                .foregroundColor(.ppOrange)
-                            Text(principle)
-                                .font(.subheadline)
-                                .foregroundColor(.ppTextPrimary)
-                        }
-                    }
-                    .padding(20)
-                    .cardStyle()
-                }
-
-                // Description
-                if let desc = viewModel.lesson.description, !desc.isEmpty {
-                    Text(desc)
-                        .font(.subheadline)
-                        .foregroundColor(.ppTextSecondary)
-                        .lineSpacing(4)
-                        .padding(20)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .cardStyle()
-                }
-
-                // Assets
-                if let assets = viewModel.lesson.assets, !assets.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Materials")
-                            .font(.headline)
-                            .foregroundColor(.ppTextPrimary)
-
-                        VStack(spacing: 0) {
-                            ForEach(assets) { asset in
-                                assetRow(asset)
-                                if asset.id != assets.last?.id {
-                                    Rectangle()
-                                        .fill(Color.ppBorder.opacity(0.3))
-                                        .frame(height: 1)
-                                        .padding(.leading, 48)
-                                }
-                            }
-                        }
-                        .cardStyle()
-                    }
+                    keyPrincipleCard(principle)
                 }
 
                 // Mark complete button
-                Button(action: {
-                    Task { await viewModel.toggleCompletion() }
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: viewModel.isCompleted ? "checkmark.circle.fill" : "circle")
-                            .font(.body)
-                        Text(viewModel.isCompleted ? "Completed" : "Mark as Complete")
-                            .fontWeight(.semibold)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                }
-                .buttonStyle(viewModel.isCompleted
-                    ? AnyButtonStyle(SecondaryButtonStyle())
-                    : AnyButtonStyle(PrimaryButtonStyle()))
+                markCompleteButton
 
+                // My Notes section
+                notesSection
+
+                // Materials
+                if let assets = viewModel.lesson.assets, !assets.isEmpty {
+                    materialsSection(assets)
+                }
+
+                // Error
                 if let error = viewModel.errorMessage {
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.circle.fill")
@@ -146,6 +49,184 @@ struct LessonView: View {
         .navigationTitle("Lesson \(viewModel.lesson.lessonNumber)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .task {
+            await viewModel.loadNote()
+        }
+    }
+
+    // MARK: - Lesson Header Card
+
+    private var lessonHeaderCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 14) {
+                // Lesson number circle
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.ppIndigo.opacity(0.3))
+                        .frame(width: 44, height: 44)
+                    Text("\(viewModel.lesson.lessonNumber)")
+                        .font(.headline.weight(.bold))
+                        .foregroundColor(.ppIndigo)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("LESSON \(viewModel.lesson.lessonNumber)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.ppOrange)
+                        .tracking(1)
+
+                    Text(viewModel.lesson.title)
+                        .font(.title3.bold())
+                        .foregroundColor(.ppTextPrimary)
+                }
+            }
+
+            if let subtitle = viewModel.lesson.subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundColor(.ppTextSecondary)
+            }
+
+            // Description
+            if let desc = viewModel.lesson.description, !desc.isEmpty {
+                Text(desc)
+                    .font(.subheadline)
+                    .foregroundColor(.ppTextSecondary)
+                    .lineSpacing(4)
+            }
+
+            // Duration
+            if let minutes = viewModel.lesson.estimatedMinutes {
+                HStack(spacing: 4) {
+                    Image(systemName: "book.fill")
+                        .font(.system(size: 10))
+                    Text("\(minutes) min")
+                }
+                .font(.caption)
+                .foregroundColor(.ppTextMuted)
+            }
+        }
+        .padding(20)
+        .cardStyle()
+    }
+
+    // MARK: - Key Principle
+
+    private func keyPrincipleCard(_ principle: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: "lightbulb.fill")
+                    .font(.caption)
+                    .foregroundColor(.ppOrange)
+                Text("KEY PRINCIPLE")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.ppOrange)
+                    .tracking(1)
+            }
+
+            Text("\u{201C}\(principle)\u{201D}")
+                .font(.subheadline.italic())
+                .foregroundColor(.ppTextPrimary)
+                .lineSpacing(3)
+        }
+        .padding(20)
+        .cardStyle()
+    }
+
+    // MARK: - Mark Complete Button
+
+    private var markCompleteButton: some View {
+        Button(action: {
+            Task { await viewModel.toggleCompletion() }
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: viewModel.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.body)
+                Text(viewModel.isCompleted ? "Lesson Completed" : "Mark Lesson Complete")
+                    .fontWeight(.semibold)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+        }
+        .buttonStyle(viewModel.isCompleted
+            ? AnyButtonStyle(SecondaryButtonStyle())
+            : AnyButtonStyle(PrimaryButtonStyle()))
+    }
+
+    // MARK: - My Notes Section
+
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "book.fill")
+                    .foregroundColor(.ppTextPrimary)
+                Text("My Notes")
+                    .font(.headline.weight(.semibold))
+                    .foregroundColor(.ppTextPrimary)
+            }
+
+            TextField("Write your notes, insights, and reflections for this lesson...", text: $viewModel.noteContent, axis: .vertical)
+                .lineLimit(5...10)
+                .darkInputStyle()
+
+            HStack {
+                Spacer()
+                Button {
+                    Task { await viewModel.saveNote() }
+                } label: {
+                    HStack(spacing: 6) {
+                        if viewModel.isSavingNote {
+                            ProgressView().tint(.white)
+                        } else {
+                            Image(systemName: "square.and.arrow.down")
+                                .font(.caption)
+                        }
+                        Text("Save Notes")
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                }
+                .buttonStyle(PrimaryButtonStyle(isLoading: viewModel.isSavingNote))
+                .disabled(viewModel.isSavingNote)
+            }
+
+            if viewModel.noteSaved {
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.ppSuccess)
+                    Text("Notes saved")
+                        .foregroundColor(.ppSuccess)
+                }
+                .font(.caption)
+                .transition(.opacity)
+            }
+        }
+        .padding(20)
+        .cardStyle()
+    }
+
+    // MARK: - Materials
+
+    private func materialsSection(_ assets: [LessonAsset]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Materials")
+                .font(.headline)
+                .foregroundColor(.ppTextPrimary)
+
+            VStack(spacing: 0) {
+                ForEach(assets) { asset in
+                    assetRow(asset)
+                    if asset.id != assets.last?.id {
+                        Rectangle()
+                            .fill(Color.ppBorder.opacity(0.3))
+                            .frame(height: 1)
+                            .padding(.leading, 48)
+                    }
+                }
+            }
+            .cardStyle()
+        }
     }
 
     private func assetRow(_ asset: LessonAsset) -> some View {
@@ -154,7 +235,6 @@ struct LessonView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.ppOrange.opacity(0.15))
                     .frame(width: 36, height: 36)
-
                 Image(systemName: iconFor(asset.assetType))
                     .font(.body)
                     .foregroundColor(.ppOrange)
@@ -164,7 +244,6 @@ struct LessonView: View {
                 Text(asset.label)
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(.ppTextPrimary)
-
                 Text(asset.assetType.uppercased())
                     .font(.caption2.weight(.bold))
                     .foregroundColor(.ppTextMuted)
