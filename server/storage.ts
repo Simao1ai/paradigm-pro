@@ -58,6 +58,15 @@ class DatabaseStorage {
     return { ...lesson, assets };
   }
 
+  // Lightweight: only fetches the UUID and slug — no joins, never fails on assets
+  async getLessonIdBySlug(slug: string) {
+    const [row] = await db
+      .select({ id: lessons.id, slug: lessons.slug })
+      .from(lessons)
+      .where(eq(lessons.slug, slug));
+    return row || null;
+  }
+
   async getLessonProgress(userId: string) {
     return db.select({
       id: lessonProgress.id,
@@ -1317,17 +1326,17 @@ class DatabaseStorage {
     const enrolled = await db.execute(sql`SELECT COUNT(DISTINCT user_id) as cnt FROM lesson_progress`);
     const week1 = await db.execute(sql`
       SELECT COUNT(DISTINCT user_id) as cnt FROM lesson_progress
-      WHERE completed = TRUE
+      WHERE completed_at IS NOT NULL
       GROUP BY user_id HAVING COUNT(*) >= 1
     `);
     const week6 = await db.execute(sql`
       SELECT COUNT(DISTINCT user_id) as cnt FROM (
-        SELECT user_id, COUNT(*) as c FROM lesson_progress WHERE completed = TRUE GROUP BY user_id
+        SELECT user_id, COUNT(*) as c FROM lesson_progress WHERE completed_at IS NOT NULL GROUP BY user_id
       ) t WHERE c >= 6
     `);
     const courseComplete = await db.execute(sql`
       SELECT COUNT(DISTINCT user_id) as cnt FROM (
-        SELECT user_id, COUNT(*) as c FROM lesson_progress WHERE completed = TRUE GROUP BY user_id
+        SELECT user_id, COUNT(*) as c FROM lesson_progress WHERE completed_at IS NOT NULL GROUP BY user_id
       ) t WHERE c >= 12
     `);
 
@@ -1456,7 +1465,7 @@ class DatabaseStorage {
   async getMyStats(userId: string) {
     // Lessons done
     const progressResult = await db.execute(sql`
-      SELECT COUNT(*) FILTER (WHERE completed = TRUE) as done,
+      SELECT COUNT(*) FILTER (WHERE completed_at IS NOT NULL) as done,
              COUNT(*) as total
       FROM lesson_progress WHERE user_id = ${userId}
     `);
@@ -1542,7 +1551,7 @@ class DatabaseStorage {
     let completionPaceDate: string | null = null;
     if (done > 0 && done < totalLessons) {
       const firstProgressResult = await db.execute(sql`
-        SELECT MIN(updated_at) as first FROM lesson_progress WHERE user_id = ${userId} AND completed = TRUE
+        SELECT MIN(completed_at) as first FROM lesson_progress WHERE user_id = ${userId} AND completed_at IS NOT NULL
       `);
       const firstDate = (firstProgressResult.rows[0] as any)?.first;
       if (firstDate) {

@@ -67,6 +67,21 @@ export default function LessonDetailPage() {
     enabled: !!slug,
   });
 
+  // Lightweight fallback query — just the lesson UUID, no joins, always reliable
+  const { data: lessonIdData } = useQuery<{ id: string; slug: string } | null>({
+    queryKey: ["/api/lesson-id", slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/lesson-id/${slug}`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!slug,
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour — IDs never change
+  });
+
+  // Always available once either query settles
+  const lessonId = lesson?.id || lessonIdData?.id || null;
+
   const { data: note } = useQuery<NoteData | null>({
     queryKey: ["/api/notes", slug],
     queryFn: async () => {
@@ -89,14 +104,14 @@ export default function LessonDetailPage() {
   });
 
   const { data: latestQuizData, refetch: refetchQuiz } = useQuery<{ result: any | null }>({
-    queryKey: ["/api/ai/quiz-result", lesson?.id],
+    queryKey: ["/api/ai/quiz-result", lessonId],
     queryFn: async () => {
-      if (!lesson?.id) return { result: null };
-      const res = await fetch(`/api/ai/quiz-result/${lesson.id}`, { credentials: "include" });
+      if (!lessonId) return { result: null };
+      const res = await fetch(`/api/ai/quiz-result/${lessonId}`, { credentials: "include" });
       if (!res.ok) return { result: null };
       return res.json();
     },
-    enabled: !!lesson?.id,
+    enabled: !!lessonId,
   });
 
   if (note && !noteLoaded) {
@@ -235,59 +250,9 @@ export default function LessonDetailPage() {
         </div>
       </div>
 
-      {!isCompleted && (
-        <button
-          onClick={() => markCompleteMutation.mutate()}
-          disabled={markCompleteMutation.isPending}
-          className="btn-gold rounded-xl px-6 py-3 text-sm font-semibold flex items-center gap-2 disabled:opacity-60"
-        >
-          {markCompleteMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <CheckCircle2 className="h-4 w-4" />
-          )}
-          Mark Lesson Complete
-        </button>
-      )}
-
-      <div className="card-glass p-6">
-        <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-brand-gold" />
-          My Notes
-        </h3>
-        <textarea
-          value={noteContent}
-          onChange={(e) => setNoteContent(e.target.value)}
-          placeholder="Write your notes, insights, and reflections for this lesson..."
-          rows={6}
-          className="w-full rounded-xl bg-brand-navy/50 border border-border px-4 py-3 text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-gold/50 text-sm resize-none"
-        />
-        <div className="flex items-center justify-between mt-3">
-          <p className="text-xs text-muted-foreground">
-            {saveNoteMutation.isSuccess ? "Saved!" : ""}
-          </p>
-          <button
-            onClick={() => saveNoteMutation.mutate()}
-            disabled={saveNoteMutation.isPending}
-            className="flex items-center gap-2 btn-gold rounded-xl px-5 py-2 text-sm font-semibold disabled:opacity-60"
-          >
-            {saveNoteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Save Notes
-          </button>
-        </div>
-      </div>
-
-      {/* Action Plan */}
-      {lesson?.id && (
-        <ActionPlanCard
-          lessonId={lesson.id}
-          lessonTitle={displayLesson.title}
-          lessonContent={lessonContentStr}
-        />
-      )}
-
+      {/* ── AI Features Row ─────────────────────────────── */}
       {/* Quiz */}
-      {lesson?.id && (() => {
+      {lessonId && (() => {
         const lastResult = latestQuizData?.result;
         const lastPct = lastResult
           ? Math.round((lastResult.score / lastResult.total_questions) * 100)
@@ -364,9 +329,9 @@ export default function LessonDetailPage() {
         );
       })()}
 
-      {showQuiz && lesson?.id && (
+      {showQuiz && lessonId && (
         <QuizModal
-          lessonId={lesson.id}
+          lessonId={lessonId}
           lessonTitle={displayLesson.title}
           lessonContent={lessonContentStr}
           onClose={() => {
@@ -375,6 +340,59 @@ export default function LessonDetailPage() {
           }}
         />
       )}
+
+      {/* Action Plan */}
+      {lessonId && (
+        <ActionPlanCard
+          lessonId={lessonId}
+          lessonTitle={displayLesson.title}
+          lessonContent={lessonContentStr}
+        />
+      )}
+
+      {/* Mark Complete */}
+      {!isCompleted && (
+        <button
+          onClick={() => markCompleteMutation.mutate()}
+          disabled={markCompleteMutation.isPending}
+          className="btn-gold rounded-xl px-6 py-3 text-sm font-semibold flex items-center gap-2 disabled:opacity-60"
+        >
+          {markCompleteMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <CheckCircle2 className="h-4 w-4" />
+          )}
+          Mark Lesson Complete
+        </button>
+      )}
+
+      {/* Notes */}
+      <div className="card-glass p-6">
+        <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-brand-gold" />
+          My Notes
+        </h3>
+        <textarea
+          value={noteContent}
+          onChange={(e) => setNoteContent(e.target.value)}
+          placeholder="Write your notes, insights, and reflections for this lesson..."
+          rows={6}
+          className="w-full rounded-xl bg-brand-navy/50 border border-border px-4 py-3 text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-gold/50 text-sm resize-none"
+        />
+        <div className="flex items-center justify-between mt-3">
+          <p className="text-xs text-muted-foreground">
+            {saveNoteMutation.isSuccess ? "Saved!" : ""}
+          </p>
+          <button
+            onClick={() => saveNoteMutation.mutate()}
+            disabled={saveNoteMutation.isPending}
+            className="flex items-center gap-2 btn-gold rounded-xl px-5 py-2 text-sm font-semibold disabled:opacity-60"
+          >
+            {saveNoteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Save Notes
+          </button>
+        </div>
+      </div>
 
       <div className="flex items-center justify-between pt-4">
         {prevLesson ? (
@@ -402,15 +420,15 @@ export default function LessonDetailPage() {
       </div>
 
       {/* Discussion Forum */}
-      {lesson?.id && (
+      {lessonId && (
         <div className="mt-8 card-glass p-5">
-          <ForumSection lessonId={lesson.id} />
+          <ForumSection lessonId={lessonId} />
         </div>
       )}
 
-      {lesson?.id && (
+      {lessonId && (
         <CoachingChat
-          lessonId={lesson.id}
+          lessonId={lessonId}
           lessonTitle={displayLesson.title}
           lessonContent={lessonContentStr}
         />

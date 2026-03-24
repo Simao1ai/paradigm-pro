@@ -58,6 +58,23 @@ async function upsertUser(claims: any) {
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
   });
+
+  // Ensure a profiles row exists so AI features (action plans, quiz results, etc.)
+  // which FK-reference profiles(id) work from the very first login
+  try {
+    const { db } = await import("../../db.js");
+    const { profiles } = await import("../../../shared/schema.js");
+    const fullName = [claims["first_name"], claims["last_name"]].filter(Boolean).join(" ") || "";
+    await db.insert(profiles).values({
+      id: claims["sub"],
+      fullName,
+      avatarUrl: claims["profile_image_url"] || null,
+      role: "student",
+    }).onConflictDoNothing();
+  } catch (e) {
+    // Non-fatal: profile may already exist or schema mismatch
+    console.error("[Auth] Profile upsert error:", e);
+  }
 }
 
 export async function setupAuth(app: Express) {
@@ -120,20 +137,33 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
-      );
+      req.session.destroy(() => {
+        res.clearCookie("connect.sid");
+        res.redirect("/");
+      });
     });
   });
 }
 
-export const isAuthenticated: RequestHandler = async (req, res, next) => {
+export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
+  // Check Bearer token first (mobile app)
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const { verifyMobileToken } = await import("../../auth/mobile.js");
+      const payload = verifyMobileToken(authHeader.slice(7));
+      if (payload && payload.type === "access") {
+        req.user = { claims: { sub: payload.sub, email: payload.email } };
+        return next();
+      }
+    } catch {}
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Fall back to session auth (web)
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
