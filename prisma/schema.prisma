@@ -16,6 +16,7 @@ model User {
   image         String?
   enrollments   Enrollment[]
   progress      Progress[]
+  todos         Todo[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -102,4 +103,14 @@ model Progress {
   updatedAt     DateTime  @updatedAt
 
   @@unique([userId, lessonId])
+}
+
+model Todo {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
